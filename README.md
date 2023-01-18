@@ -3,12 +3,6 @@
 This manager will help developers to deal with the storage in any **C++** UWP app
 using only string path and not to aware about UWP side.
 
-## Available?
-Yes very very soon (Final phase)..
-
-Check this test on PPSSPP emulator and let me know what do you think?
-
-
 
 ## Why I made this?
 
