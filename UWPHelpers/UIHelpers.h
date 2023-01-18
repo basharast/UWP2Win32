@@ -12,12 +12,9 @@
 // IsShiftOnHold()
 // IsCtrlOnHold()
 
-#include "Common/UI/View.h"
-#include "Common/UI/Root.h"
+#include "StorageExtensions.h"
 
 // Input Handler
-extern UI::TextEdit* globalTextEdit; // TextEdit to be invoked by keydown event
-void SendKeyToTextEdit(int vKey, int flags, int state);
 void ShowInputKeyboard();
 void HideInputKeyboard();
 
