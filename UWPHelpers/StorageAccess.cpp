@@ -192,6 +192,7 @@ void FillLookupList() {
 	// Append known folders
 #if APPEND_APP_LOCALDATA_LOCATION
 	AddToAccessibleItems(ApplicationData::Current->LocalFolder);
+	AddToAccessibleItems(ApplicationData::Current->TemporaryFolder);
 #endif
 
 #if APPEND_APP_INSTALLATION_LOCATION

@@ -60,6 +60,7 @@ void SetWorkingFolder(std::string location); // Change working location
 std::string GetInstallationFolder();
 std::string GetLocalFolder();
 std::string GetTempFolder();
+std::string GetTempFile(std::string name);
 std::string GetPicturesFolder(); // Requires 'picturesLibrary' capability
 std::string GetVideosFolder(); // Requires 'videosLibrary' capability
 std::string GetDocumentsFolder(); // Requires 'documentsLibrary' capability

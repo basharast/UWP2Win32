@@ -88,6 +88,16 @@ std::string GetLocalFolder() {
 std::string GetTempFolder() {
 	return convert(ApplicationData::Current->TemporaryFolder->Path);
 }
+std::string GetTempFile(std::string name) {
+	StorageFile^ tmpFile;
+	ExecuteTask(tmpFile, ApplicationData::Current->TemporaryFolder->CreateFileAsync(convert(name), CreationCollisionOption::GenerateUniqueName));
+	if (tmpFile != nullptr) {
+		return convert(tmpFile->Path);
+	}
+	else {
+		return "";
+	}
+}
 std::string GetPicturesFolder() {
 	// Requires 'picturesLibrary' capability
 	return convert(KnownFolders::PicturesLibrary->Path);
@@ -283,7 +293,7 @@ HANDLE CreateFileUWP(std::string path, int accessMode, int shareMode, int openMo
 		auto storageItem = GetStorageItem(path, createIfNotExists);
 		
 		if (storageItem.IsValid()) {
-			UWP_DEBUG_LOG(UWPSMT, "Getting handle (%s)", path.ToString().c_str());
+			UWP_DEBUG_LOG(UWPSMT, "Getting handle (%s)", path.c_str());
 		 	HRESULT hr = storageItem.GetHandle(&handle, accessMode, shareMode);
 			if (hr == E_FAIL) {
 				handle = INVALID_HANDLE_VALUE;
@@ -291,7 +301,7 @@ HANDLE CreateFileUWP(std::string path, int accessMode, int shareMode, int openMo
 		}
 		else {
 			handle = INVALID_HANDLE_VALUE;
-			UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", path.ToString().c_str());
+			UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", path.c_str());
 		}	
 	}
     return handle;
@@ -335,7 +345,7 @@ bool IsExistsUWP(std::string path) {
 			return true;
 		}
 	}
-	UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", path.c_str());
+	// UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", path.c_str());
 	return false;
 }
 
@@ -423,7 +433,7 @@ std::list<ItemInfoUWP> GetFolderContents(std::string path, bool deepScan) {
 			}
 		}
 		else {
-			UWP_ERROR_LOG(UWPSMT, "Cannot get contents!, checking for other options.. (%s)", path.ToString().c_str());
+			UWP_ERROR_LOG(UWPSMT, "Cannot get contents!, checking for other options.. (%s)", path.c_str());
 		}
 ;	}
 
@@ -432,7 +442,7 @@ std::list<ItemInfoUWP> GetFolderContents(std::string path, bool deepScan) {
 			// if not accessible, maybe some items inside it were selected before
 			// and they already in our accessible list
 		if (IsContainsAccessibleItems(path)) {
-			UWP_DEBUG_LOG(UWPSMT, "Folder contains accessible items (%s)", path.ToString().c_str());
+			UWP_DEBUG_LOG(UWPSMT, "Folder contains accessible items (%s)", path.c_str());
 
 			// Check contents
 			auto cItems = GetStorageItemsByParent(path);
@@ -449,7 +459,7 @@ std::list<ItemInfoUWP> GetFolderContents(std::string path, bool deepScan) {
 			// then add fake folder as sub root to avoid empty results
 			std::list<std::string> subRoot;
 			if (IsRootForAccessibleItems(path, subRoot)) {
-				UWP_DEBUG_LOG(UWPSMT, "Folder is root for accessible items (%s)", path.ToString().c_str());
+				UWP_DEBUG_LOG(UWPSMT, "Folder is root for accessible items (%s)", path.c_str());
 
 				if (!subRoot.empty()) {
 					for each (auto sItem in subRoot) {
@@ -459,7 +469,7 @@ std::list<ItemInfoUWP> GetFolderContents(std::string path, bool deepScan) {
 				}
 			}
 			else {
-				UWP_ERROR_LOG(UWPSMT, "Cannot get any content!.. (%s)", path.ToString().c_str());
+				UWP_ERROR_LOG(UWPSMT, "Cannot get any content!.. (%s)", path.c_str());
 			}
 		}
 	}
@@ -493,7 +503,7 @@ int64_t GetSizeUWP(std::string path) {
 			size = storageItem.GetSize();
 		}
 		else {
-			UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", path.ToString().c_str());
+			UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", path.c_str());
 		}
 	}
 	return size;
@@ -508,7 +518,7 @@ bool DeleteUWP(std::string path) {
 			state = storageItem.Delete();
 		}
 		else {
-			UWP_DEBUG_LOG(UWPSMT, "Couldn't find or access (%s)", path.ToString().c_str());
+			UWP_DEBUG_LOG(UWPSMT, "Couldn't find or access (%s)", path.c_str());
 		}
 	}
 
@@ -528,7 +538,7 @@ bool CreateDirectoryUWP(std::string path, bool replaceExisting) {
 			state = storageItem.CreateFolder(itemName, replaceExisting);
 		}
 		else {
-			UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", rootPath.ToString().c_str());
+			UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", rootPath.c_str());
 		}
 	}
 	
@@ -549,7 +559,7 @@ bool CopyUWP(std::string path, std::string dest) {
 			destDir = dstPath.GetDirectory();
 			auto dstStorageItem = GetStorageItem(destDir, true, true);
 			if (dstStorageItem.IsValid()) {
-				UWP_DEBUG_LOG(UWPSMT, "Copy (%s) to (%s)", path.c_str(), name.c_str());
+				UWP_DEBUG_LOG(UWPSMT, "Copy (%s) to (%s)", path.c_str(), dest.c_str());
 				srcStorageItem.Copy(dstStorageItem, dstName);
 			}
 			else {
@@ -579,7 +589,7 @@ bool MoveUWP(std::string path, std::string dest) {
 			destDir = dstPath.GetDirectory();
 			auto dstStorageItem = GetStorageItem(destDir, true, true);
 			if (dstStorageItem.IsValid()) {
-				UWP_DEBUG_LOG(UWPSMT, "Move (%s) to (%s)", path.c_str(), name.c_str());
+				UWP_DEBUG_LOG(UWPSMT, "Move (%s) to (%s)", path.c_str(), dest.c_str());
 				srcStorageItem.Move(dstStorageItem, dstName);
 			}
 			else {
