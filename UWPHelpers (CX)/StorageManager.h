@@ -26,9 +26,9 @@
 // IsExistsUWP(std::string path)
 // IsDirectoryUWP(std::string path)
 // 
-// GetFolderContents(std::string path, T& files)
-// GetFolderContents(std::wstring path, T& files)
-// GetFileInfoUWP(std::string path, T& info)
+// GetFolderContents(std::string path, bool deepScan = false)
+// GetFolderContents(std::wstring path, bool deepScan = false)
+// GetFileInfoUWP(std::string path)
 //
 // GetSizeUWP(std::string path)
 // DeleteUWP(std::string path)
