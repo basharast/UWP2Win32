@@ -15,8 +15,6 @@
 #include "StorageHandler.h"
 #include "StorageExtensions.h"
 
-using namespace Windows::Storage;
-
 HRESULT GetFileHandle(StorageFile^ file, HANDLE* handle, HANDLE_ACCESS_OPTIONS accessMode, HANDLE_SHARING_OPTIONS shareMode)
 {
 	if (file != nullptr) {

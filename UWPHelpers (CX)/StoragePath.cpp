@@ -109,9 +109,8 @@ static std::string GetExtFromString(const std::string &str) {
 		return "";
 	}
 	std::string ext = str.substr(pos);
-	for (size_t i = 0; i < ext.size(); i++) {
-		ext[i] = tolower(ext[i]);
-	}
+	tolower(ext);
+	
 	return ext;
 }
 
