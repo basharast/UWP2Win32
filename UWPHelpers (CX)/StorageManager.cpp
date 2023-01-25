@@ -325,6 +325,10 @@ bool IsValidUWP(std::string path) {
 	return true;
 }
 
+bool IsValidUWP(std::wstring path){
+	return IsValidUWP(convert(path));
+}
+
 bool IsExistsUWP(std::string path) {
 	if (IsValidUWP(path)) {
 		auto storageItem = GetStorageItem(path);
@@ -349,6 +353,10 @@ bool IsExistsUWP(std::string path) {
 	return false;
 }
 
+bool IsExistsUWP(std::wstring path) {
+	return IsExistsUWP(convert(path));
+}
+
 bool IsDirectoryUWP(std::string path) {
 	if (IsValidUWP(path)) {
 		auto storageItem = GetStorageItem(path);
@@ -359,6 +367,10 @@ bool IsDirectoryUWP(std::string path) {
 		}
 	}
 	return false;
+}
+
+bool IsDirectoryUWP(std::wstring path) {
+	return IsDirectoryUWP(convert(path));
 }
 
 FILE* GetFileStream(std::string path, const char* mode) {
@@ -387,6 +399,10 @@ FILE* GetFileStream(std::string path, const char* mode) {
 	}
 
 	return file;
+}
+
+FILE* GetFileStream(std::wstring path, const char* mode) {
+	return GetFileStream(convert(path), mode);
 }
 
 #pragma region Content Helpers
@@ -492,6 +508,10 @@ ItemInfoUWP GetItemInfoUWP(std::string path) {
 	
 	return info;
 }
+
+ItemInfoUWP GetItemInfoUWP(std::wstring path) {
+	return GetItemInfoUWP(convert(path));
+}
 #pragma endregion
 
 #pragma region Basics
@@ -509,6 +529,10 @@ int64_t GetSizeUWP(std::string path) {
 	return size;
 }
 
+int64_t GetSizeUWP(std::wstring path) {
+	return GetSizeUWP(convert(path));
+}
+
 bool DeleteUWP(std::string path) {
 	bool state = false;
 	if (IsValidUWP(path)) {
@@ -523,6 +547,10 @@ bool DeleteUWP(std::string path) {
 	}
 
 	return state;
+}
+
+bool DeleteUWP(std::wstring path) {
+	return DeleteUWP(convert(path));
 }
   
 bool CreateDirectoryUWP(std::string path, bool replaceExisting) {
@@ -543,6 +571,10 @@ bool CreateDirectoryUWP(std::string path, bool replaceExisting) {
 	}
 	
 	return state;
+}
+
+bool CreateDirectoryUWP(std::wstring path, bool replaceExisting) {
+	return CreateDirectoryUWP(convert(path), replaceExisting);
 }
 
 bool CopyUWP(std::string path, std::string dest) {
@@ -572,6 +604,10 @@ bool CopyUWP(std::string path, std::string dest) {
 	}
 
 	return state;
+}
+
+bool CopyUWP(std::wstring path, std::wstring dest) {
+	return CopyUWP(convert(path), convert(dest));
 }
 
 bool MoveUWP(std::string path, std::string dest) {
@@ -604,6 +640,10 @@ bool MoveUWP(std::string path, std::string dest) {
 	return state;
 }
 
+bool MoveUWP(std::wstring path, std::wstring dest) {
+	return MoveUWP(convert(path), convert(dest));
+}
+
 bool RenameUWP(std::string path, std::string name) {
 	bool state = false;
 	
@@ -627,6 +667,10 @@ bool RenameUWP(std::string path, std::string name) {
 
 	return state;
 }
+
+bool RenameUWP(std::wstring path, std::wstring name) {
+	return RenameUWP(convert(path), convert(name));
+}
 #pragma endregion
 
 
@@ -637,6 +681,10 @@ bool OpenFile(std::string path) {
 	bool state;
 	ExecuteTask(state, Windows::System::Launcher::LaunchUriAsync(uri), false);
 	return state;
+}
+
+bool OpenFile(std::wstring path) {
+	return OpenFile(convert(path));
 }
 
 bool OpenFolder(std::string path) {
@@ -653,6 +701,10 @@ bool OpenFolder(std::string path) {
 		}
 	}
 	return state;
+}
+
+bool OpenFolder(std::wstring path) {
+	return OpenFolder(convert(path));
 }
 
 bool IsFirstStart() {
