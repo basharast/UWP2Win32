@@ -359,6 +359,14 @@ the reason is: file APIs may work in many cases such as:
 
 and it will provide a bit faster performance in terms of fetching results
 
+# Important
+
+Be aware, `Contain` function is case senstive for now
+
+try to use exact chars case in your path when requesting file/folder
+
+I will consider to force lowercase in future
+
 
 # Credits
 
