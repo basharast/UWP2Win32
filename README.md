@@ -34,6 +34,13 @@ Below can be done with `string path` you don't have to do major changes:
 - libzip integration for extract will be detailed below (at the end)
 - More will be detailed below
 
+## License 
+
+- Because of my previous issue with what so called `Microsoft Store`
+- I don't authorize this code to be used in any app will be submitted to the `Store`
+- This condition will be voided when the `Store` policy changed and my account restored.
+
+
 ## Structure
 
 - StorageConfig (Config) <- Main usage (`StorageConfig.h`)
