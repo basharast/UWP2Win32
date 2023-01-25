@@ -3,7 +3,7 @@
 This manager will help developers to deal with the storage in any **C++** UWP app
 using only string path and not to aware about UWP side.
 - **CX:** tested
-- **WinRT:** not tested please report any issue.
+- **WinRT:** partially tested please report any issue.
 
 
 ## Why I made this?
@@ -358,6 +358,14 @@ the reason is: file APIs may work in many cases such as:
 - Accessing to USB (if capability added)
 
 and it will provide a bit faster performance in terms of fetching results
+
+# Important
+
+Be aware, `Contain` function is case senstive for now
+
+try to use exact chars case in your path when requesting file/folder
+
+I will consider to force lowercase in future
 
 
 # Credits
