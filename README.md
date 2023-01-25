@@ -3,7 +3,7 @@
 This manager will help developers to deal with the storage in any **C++** UWP app
 using only string path and not to aware about UWP side.
 - **CX:** tested
-- **WinRT:** not tested please report any issue.
+- **WinRT:** partially tested please report any issue.
 
 
 ## Why I made this?
