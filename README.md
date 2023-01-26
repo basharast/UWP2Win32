@@ -381,4 +381,5 @@ I will consider to force lowercase in future
 - Peter Torr - MSFT for Win32 `HANDLE` solution
 - `PathUWP` based on `Path.h` type from **PPSSPP**
 - Libretro/RetroArch team for `async` idea
+- Team Kodi for `WaitTask` solution
 - StackOverflow for various string helpers
