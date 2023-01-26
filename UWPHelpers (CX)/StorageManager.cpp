@@ -593,7 +593,7 @@ bool CopyUWP(std::string path, std::string dest) {
 			auto dstStorageItem = GetStorageItem(destDir, true, true);
 			if (dstStorageItem.IsValid()) {
 				UWP_DEBUG_LOG(UWPSMT, "Copy (%s) to (%s)", path.c_str(), dest.c_str());
-				srcStorageItem.Copy(dstStorageItem, dstName);
+				state = srcStorageItem.Copy(dstStorageItem, dstName);
 			}
 			else {
 				UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", dest.c_str());
@@ -627,7 +627,7 @@ bool MoveUWP(std::string path, std::string dest) {
 			auto dstStorageItem = GetStorageItem(destDir, true, true);
 			if (dstStorageItem.IsValid()) {
 				UWP_DEBUG_LOG(UWPSMT, "Move (%s) to (%s)", path.c_str(), dest.c_str());
-				srcStorageItem.Move(dstStorageItem, dstName);
+				state = srcStorageItem.Move(dstStorageItem, dstName);
 			}
 			else {
 				UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", dest.c_str());
@@ -655,7 +655,7 @@ bool RenameUWP(std::string path, std::string name) {
 		auto srcStorageItem = GetStorageItem(path);
 		if (srcStorageItem.IsValid()) {
 			UWP_DEBUG_LOG(UWPSMT, "Rename (%s) to (%s)", path.c_str(), name.c_str());
-			srcStorageItem.Rename(name);
+			state = srcStorageItem.Rename(name);
 		}
 		else {
 			UWP_DEBUG_LOG(UWPSMT, "Couldn't find or access (%s)", path.c_str());
