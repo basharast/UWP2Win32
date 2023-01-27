@@ -123,10 +123,9 @@ std::string GetMusicFolder() {
 }
 std::string GetPreviewPath(std::string path) {
 	std::string pathView = path;
-	if (isChild(GetLocalFolder(), path)) {
-		pathView = "App Local Data";
-	}
-
+	replace(pathView, GetLocalFolder(), "LocalState");
+	replace(pathView, GetTempFolder(), "TempState");
+	replace(pathView, GetInstallationFolder(), "Installation folder");
 	return pathView;
 }
 #pragma endregion
