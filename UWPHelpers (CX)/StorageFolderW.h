@@ -374,8 +374,8 @@ public:
 					// Remove root path but keep the parent name
 					replace(targetLocation, rootPath, "");
 					replace(targetLocation, convert("\\" + fItem->Name), "");
-                    ltrim(rootPath, "\\");
-                    rtrim(rootPath, "\\");
+                    ltrim(targetLocation, "\\");
+                    rtrim(targetLocation, "\\");
 					
 					// Build folder structure
 					StorageFolder^ targetFolder;
