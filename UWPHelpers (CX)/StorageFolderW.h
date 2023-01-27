@@ -319,6 +319,17 @@ public:
 		}
 	}
 
+	void BuildStructure(StorageFolder^& folder, std::string path, StorageFolder^ target) {
+		std::string folderName;
+		std::vector<std::string> locationParts = split(path, '\\');
+		for each (auto dir in locationParts) {
+			folderName.append(dir);
+			// Create folder
+			ExecuteTask(folder, target->CreateFolderAsync(convert(folderName), CreationCollisionOption::OpenIfExists));
+			folderName.append("\\");
+		}
+	}
+
 	StorageFolder^ GetOrCreateFolder(PathUWP path) {
 		StorageFolder^ folder;
 		auto pathString = CleanItemPath(path);
@@ -352,7 +363,8 @@ public:
 			// Copy files one by one to avoid 'access violation' issues with deep-level tasks
 			std::string rootName = convert(storageFolder->Name);
 			std::string rootPath = PathUWP(GetPath()).GetDirectory();
-
+            windowsPath(rootPath);
+			
 			if (destination != nullptr) {
 				for each (auto file in files) {
 					auto fItem = file.GetStorageFile();
@@ -362,10 +374,12 @@ public:
 					// Remove root path but keep the parent name
 					replace(targetLocation, rootPath, "");
 					replace(targetLocation, convert("\\" + fItem->Name), "");
-
+                    ltrim(rootPath, "\\");
+                    rtrim(rootPath, "\\");
+					
 					// Build folder structure
 					StorageFolder^ targetFolder;
-					BuildStructure(targetFolder, targetLocation);
+					BuildStructure(targetFolder, targetLocation, destination);
 
 					if (targetFolder != nullptr) {
 						// Copy file
