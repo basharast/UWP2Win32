@@ -311,13 +311,20 @@ public:
 	}
 
 	void BuildStructure(StorageFolder& folder, std::string path, StorageFolder target) {
-		std::string folderName;
-		std::vector<std::string> locationParts = split(path, '\\');
-		for (auto dir : locationParts) {
-			folderName.append(dir);
-			// Create folder
-			ExecuteTask(folder, target.CreateFolderAsync(convert(folderName), CreationCollisionOption::OpenIfExists));
-			folderName.append("\\");
+		IStorageItem test(nullptr);
+		ExecuteTask(test, target.TryGetItemAsync(convert(path)));
+		if (test == nullptr) {
+			std::string folderName;
+			std::vector<std::string> locationParts = split(path, '\\');
+			for (auto dir : locationParts) {
+				folderName.append(dir);
+				// Create folder
+				ExecuteTask(folder, target.CreateFolderAsync(convert(folderName), CreationCollisionOption::OpenIfExists));
+				folderName.append("\\");
+			}
+		}
+		else {
+			folder = test.as<StorageFolder>();
 		}
 	}
 
