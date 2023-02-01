@@ -85,7 +85,7 @@ If you want to add extra locations such as `Documents`:
 
 Open `StorageConfig.h` at the top you will find:
 
-```
+```c++
 // Known locations
 #define APPEND_APP_LOCALDATA_LOCATION 1 
 #define APPEND_APP_INSTALLATION_LOCATION 1 
@@ -113,7 +113,7 @@ then you can invoke picker like this:
 
 ### File Picker
 
-```
+```c++
 // Supported types
 std::vector<std::string> supportedExtensions = { ".cso", ".bin", ".iso", ".elf", ".zip"};
 
@@ -127,7 +127,7 @@ ChooseFile(supportedExtensions).then([](std::string filePath) {
 
 ### Folder Picker
 
-```
+```c++
 ChooseFolder().then([](std::string folderPath) {
 	if (folderPath.size() > 1) {
 		// Do something here
@@ -147,7 +147,7 @@ then you can deal with the files using the following functions:
 
 ## Locations
 
-```
+```c++
 std::string GetWorkingFolder();
 void SetWorkingFolder(std::string location);
 std::string GetInstallationFolder();
@@ -171,7 +171,7 @@ in case the working folder was in app local folder instead of long path
 
 Get `HANDLE` for file/folder:
 
-```
+```c++
 // This call is almost similar to CreateFile2
 HANDLE CreateFileUWP(std::string path, int accessMode, int shareMode, int openMode);
 HANDLE CreateFileUWP(std::wstring path, int accessMode, int shareMode, int openMode);
@@ -179,7 +179,7 @@ HANDLE CreateFileUWP(std::wstring path, int accessMode, int shareMode, int openM
 
 Get `FILE*` stream for file:
 
-```
+```c++
 // This call will be similar to _wfopen
 FILE* GetFileStream(std::string path, const char* mode)
 ```
@@ -192,7 +192,7 @@ FILE* GetFileStream(std::string path, const char* mode)
 
 Get folder contents:
 
-```
+```c++
 // Get list of file and folder
 // be aware using 'deepScan' is slow
 // because it will use WindowsQuery
@@ -201,7 +201,7 @@ std::list<ItemInfoUWP> GetFolderContents(std::string path, bool deepScan);
 
 Get single file info:
 
-```
+```c++
 // Get single file info
 ItemInfoUWP GetItemInfoUWP(std::string path);
 ```
@@ -209,7 +209,7 @@ ItemInfoUWP GetItemInfoUWP(std::string path);
 
 ## ItemInfoUWP (Struct)
 
-```
+```c++
 struct ItemInfoUWP {
 	std::string name;
 	std::string fullName;
@@ -237,7 +237,7 @@ it's used only in this file
 
 ## Validation
 
-```
+```c++
 // Check if file/folder exists
 bool IsExistsUWP(std::string path);
 
@@ -248,7 +248,7 @@ bool IsDirectoryUWP(std::string path);
 
 ## Actions
 
-```
+```c++
 int64_t GetSizeUWP(std::string path);
 bool DeleteUWP(std::string path);
 bool CreateDirectoryUWP(std::string path, bool replaceExisting = true);
@@ -259,7 +259,7 @@ bool MoveUWP(std::string path, std::string name);
 
 ## Extra
 
-```
+```c++
 bool OpenFile(std::string path);
 bool OpenFolder(std::string path);
 bool IsFirstStart(); // Return true if first start
@@ -276,7 +276,7 @@ I was able to make zip function working by doing the following:
 - Open `zip_source_file_win32_utf16.c` file
 - Do the following changes:
 
-```
+```c++
 // Include this header
 #include "UWP2C.h"
 
@@ -318,7 +318,7 @@ Now scroll to `utf16_create_file` function
 
 and make the following changes:
 
-```
+```c++
 #ifdef MS_UWP
 	HANDLE h = CreateFile2((const wchar_t*)name, access, share_mode, creation_disposition, NULL);
 	if (h == INVALID_HANDLE_VALUE) {
@@ -341,7 +341,7 @@ just open `StorageLog.h` and do the required changes
 
 using `StorageManager.h` you will be able to:
 
-```
+```c++
 std::string GetLogFile();
 bool SaveLogs(); // With picker
 void CleanupLogs(); // Delete empty logs
