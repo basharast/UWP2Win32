@@ -31,6 +31,11 @@ void PathUWP::Init(const std::string &str) {
 		path_ = str;
 	}
 
+	replace(path_, "??\\", "");
+	replace(path_, "\\??\\", "");
+	replace(path_, "\\\\?\\", "");
+	replace(path_, "?\\", "");
+
 	// Flip all the slashes around. We flip them back on ToWString().
 	for (size_t i = 0; i < path_.size(); i++) {
 		if (path_[i] == '\\') {
