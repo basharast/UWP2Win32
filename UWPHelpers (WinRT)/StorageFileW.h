@@ -232,6 +232,7 @@ public:
 				information->LastAccessTime.QuadPart = winrt::clock::to_file_time(props.DateModified()).value;
 				information->LastWriteTime.QuadPart = winrt::clock::to_file_time(props.DateModified()).value;
 			}
+			CloseHandle(handle);
 		}
 
 		return information;

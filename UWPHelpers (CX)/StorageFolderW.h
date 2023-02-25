@@ -524,6 +524,7 @@ public:
 				information->LastAccessTime.QuadPart = props->DateModified.UniversalTime;
 				information->LastWriteTime.QuadPart = props->DateModified.UniversalTime;
 			}
+			CloseHandle(handle);
 		}
 
 		return information;
