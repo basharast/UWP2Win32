@@ -180,7 +180,7 @@ HANDLE CreateFileUWP(std::wstring path, int accessMode, int shareMode, int openM
 Get `FILE*` stream for file:
 
 ```c++
-// This call will be similar to _wfopen
+// This call will be similar to fopen
 FILE* GetFileStream(std::string path, const char* mode)
 ```
 
