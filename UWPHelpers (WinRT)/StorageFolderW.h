@@ -439,11 +439,13 @@ public:
 		FILE* file{};
 
 		bool createIfNotExists = isWriteMode(mode);
+		bool isAppend = isAppendMode(mode);
 		
 		StorageFile sfile(nullptr);
 
 		if (createIfNotExists) {
-			ExecuteTask(sfile, storageFolder.CreateFileAsync(convert(name), CreationCollisionOption::OpenIfExists));
+			auto createMode = isAppend ? CreationCollisionOption::OpenIfExists : CreationCollisionOption::ReplaceExisting;
+            ExecuteTask(sfile, storageFolder.CreateFileAsync(convert(name), createMode));
 		}
 		else {
 			IStorageItem tempItem;

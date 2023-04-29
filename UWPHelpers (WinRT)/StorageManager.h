@@ -66,6 +66,7 @@ std::string GetVideosFolder(); // Requires 'videosLibrary' capability
 std::string GetDocumentsFolder(); // Requires 'documentsLibrary' capability
 std::string GetMusicFolder(); // Requires 'musicLibrary' capability
 std::string GetPreviewPath(std::string path);
+bool isLocalState(std::string path);
 
 // Management
 HANDLE CreateFileUWP(std::string path, long accessMode = 0x80000000L, long shareMode = 0x00000001, long openMode = 3);
@@ -96,6 +97,11 @@ bool MoveUWP(std::string path, std::string dest);
 bool OpenFile(std::string path);
 bool OpenFolder(std::string path);
 bool IsFirstStart();
+std::string ResolvePathUWP(std::string path);
+bool IsContainsAccessibleItems(std::string path);
+bool IsRootForAccessibleItems(std::string path);
+// 'checkIfContainsFutureAccessItems' for listing purposes not real access, 'driveName' like C:
+bool CheckDriveAccess(std::string driveName, bool checkIfContainsFutureAccessItems);
 
 // Log helpers
 std::string GetLogFile();

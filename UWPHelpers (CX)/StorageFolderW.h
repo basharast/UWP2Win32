@@ -283,6 +283,7 @@ public:
 		// Do some fixes because 'TryGetItemAsync' is very sensetive 
 		replace(itemName, "\\\\", "\\");
 		replace(itemName, "//", "/");
+		replace(itemName, "*", "");
 		rtrim(itemName, ":"); // remove ':' at the end of the path (if any)
 
 		path = PathUWP(itemName);
@@ -448,10 +449,11 @@ public:
 		FILE* file{};
 
 		bool createIfNotExists = isWriteMode(mode);
-		
+		bool isAppend = isAppendMode(mode);
 		StorageFile^ sfile;
 
 		if (createIfNotExists) {
+			auto createMode = isAppend ? CreationCollisionOption::OpenIfExists : CreationCollisionOption::ReplaceExisting;
 			ExecuteTask(sfile, storageFolder->CreateFileAsync(convert(name), CreationCollisionOption::OpenIfExists));
 		}
 		else {

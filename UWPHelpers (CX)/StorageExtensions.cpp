@@ -299,6 +299,9 @@ std::string& trim(std::string& s, const char* t)
 bool isWriteMode(const char* mode) {
 	return (!strcmp(mode, "w") || !strcmp(mode, "wb") || !strcmp(mode, "wt") || !strcmp(mode, "at") || !strcmp(mode, "a"));
 }
+bool isAppendMode(const char* mode) {
+	return (!strcmp(mode, "at") || !strcmp(mode, "a"));
+}
 
 // Parent and child full path
 std::string getSubRoot(std::string parent, std::string child) {

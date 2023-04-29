@@ -104,6 +104,8 @@ Open `StorageConfig.h` at the top you will find:
 - Pictures: `picturesLibrary`
 - Music: `musicLibrary`
 
+**Note:** try to avoid `documentsLibrary` 
+it will throw exception in case you're trying to reach file is not declared in `appxmanifest` file
 
 ## Pick files/folders
 
@@ -184,6 +186,19 @@ Get `FILE*` stream for file:
 FILE* GetFileStream(std::string path, const char* mode)
 ```
 
+Get `FILE*` stream for file (DirectAPI):
+
+This function is important to avoid using `fopen`, 
+
+preferred to be used before `GetFileStream()`
+
+it will call `CreateFile2FromAppW` with `mode` converted to it's args
+
+```c++
+// This call will be similar to fopen
+FILE* GetFileStreamFromApp(std::string path, const char* mode)
+```
+
 ## Restrictions
 
 - You cannot use `FindFirstFile`, `FindNextFile` with folder `HANDLE`
@@ -243,6 +258,10 @@ bool IsExistsUWP(std::string path);
 
 // Check if target is directory 
 bool IsDirectoryUWP(std::string path);
+
+// Check if drive is accessible 
+// 'checkIfContainsFutureAccessItems' for listing purposes not real access, 'driveName' like C:
+bool CheckDriveAccess(std::string driveName, bool checkIfContainsFutureAccessItems);
 ```
 
 
@@ -277,22 +296,29 @@ I was able to make zip function working by doing the following:
 - Do the following changes:
 
 ```c++
-// Include this header
+// Include headers
+#ifdef MS_UWP
 #include "UWP2C.h"
+#include <fileapifromapp.h>
+#endif
 
 // Replace `zip_win32_file_operations_t ops_utf16` by below
 #ifdef MS_UWP
-static BOOL GetFileAttr(const void* name, GET_FILEEX_INFO_LEVELS info_level, void* lpFileInformation);
-static BOOL __stdcall
-GetFileAttr(const void* name, GET_FILEEX_INFO_LEVELS info_level, void* lpFileInformation) {
-    // Ignore `info_level` it will not be used for now
-	return GetFileAttributesUWP(name, lpFileInformation);
+static BOOL __stdcall GetFileAttr(const void* name, GET_FILEEX_INFO_LEVELS info_level, void* lpFileInformation) {
+	BOOL state = GetFileAttributesExFromAppW(name, info_level, lpFileInformation);
+	if (state == FALSE) {
+		// Ignore `info_level` not in use for now
+		state = GetFileAttributesUWP(name, lpFileInformation);
+	}
+	return state;
 }
 
-static BOOL DelFile(const void* name);
-static BOOL __stdcall
-DelFile(const void* name) {
-	return DeleteFileUWP(name);
+static BOOL __stdcall DelFile(const void* name) {
+	BOOL state = DeleteFileFromAppW(name);
+	if (state == FALSE) {
+		state = DeleteFileUWP(name);
+	}
+	return state;
 }
 
 // You got the idea so you can add more if you want
@@ -300,11 +326,11 @@ DelFile(const void* name) {
 zip_win32_file_operations_t ops_utf16 = {
 	utf16_allocate_tempname,
 	utf16_create_file, // Will invoke UWP Storage manager (If needed)
-	DelFile, // Will invoke UWP Storage manager
-	GetFileAttributesW, // Not implemented
-	GetFileAttr, // Will invoke UWP Storage manager
+	DelFile, // Will invoke UWP Storage manager (If needed)
+	GetFileAttributesW,
+	GetFileAttr, // Will invoke UWP Storage manager (If needed)
 	utf16_make_tempname,
-	MoveFileExW, // Not implemented
+	MoveFileExW,
 	SetFileAttributesW,
 	utf16_strdup
 };
@@ -320,7 +346,7 @@ and make the following changes:
 
 ```c++
 #ifdef MS_UWP
-	HANDLE h = CreateFile2((const wchar_t*)name, access, share_mode, creation_disposition, NULL);
+	HANDLE h = CreateFile2FromAppW((const wchar_t*)name, access, share_mode, creation_disposition, NULL);
 	if (h == INVALID_HANDLE_VALUE) {
 		h = CreateFileUWP(name, (int)access, (int)share_mode, (int)creation_disposition);
 	}
@@ -354,7 +380,7 @@ and inside it will be new file for each launch at the time `GetLogFile()` called
 
 # Tips
 
-It's prefered to use file APIs first,
+It's preferred to use file APIs first,
 
 then forward the request to storage manager if APIs failed
 

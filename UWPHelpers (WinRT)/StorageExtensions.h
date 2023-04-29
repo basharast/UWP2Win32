@@ -92,6 +92,7 @@ bool findInList(std::list<T>& inputList, T& str) {
 };
 
 bool isWriteMode(const char* mode);
+bool isAppendMode(const char* mode);
 // Parent and child full path
 std::string getSubRoot(std::string parent, std::string child);
 
