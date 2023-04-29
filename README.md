@@ -105,7 +105,7 @@ Open `StorageConfig.h` at the top you will find:
 - Music: `musicLibrary`
 
 **Note:** try to avoid `documentsLibrary` 
-it will throw exception in case you're trying to reach file is not declared in `appxmanifest` file
+it will throw exception in case you're trying to reach type is not declared in `appxmanifest` file
 
 ## Pick files/folders
 
