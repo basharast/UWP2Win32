@@ -5,6 +5,10 @@ using only string path and not to aware about UWP side.
 - **CX:** tested
 - **WinRT:** partially tested please report any issue.
 
+## When to use this
+
+Only if you want to keep the legacy support, otherwise MS has new solutions for that.
+
 
 ## Why I made this?
 
