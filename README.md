@@ -5,24 +5,9 @@ using only string path and not to aware about UWP side.
 - **CX:** tested
 - **WinRT:** partially tested please report any issue.
 
-## When to use this
+## When to use this?
 
 Only if you want to keep the legacy support, otherwise MS has new solutions for that.
-
-
-## Why I made this?
-
-Many projects lost legacy support when it comes to UWP
-
-because they start using Microsoft's (latest) file APIs
-
-and in general, gaining access directly to any file is againest UWP concept
-
-also it will force the developer to use restricted caps like `boardFileSystem`
-
-which will make the app useless if `File System` turned off in `Privacy` options.
-
-Here where this storage manager come to solve the issue.
 
 
 ## Capabilities
