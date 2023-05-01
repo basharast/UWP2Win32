@@ -4,40 +4,6 @@
 // Telegram: @basharastifan
 // GitHub: https://github.com/basharast/UWP2Win32
 
-// Functions:
-// replace(std::string& str, const std::string& from, const std::string& to)
-// replace2(const std::string str, const std::string& from, const std::string& to)
-// split(const std::string s, char seperator)
-// 
-// isChild(std::string parent, std::string child)
-// isParent(std::string parent, std::string child, std::string childName)
-// 
-// iequals(const std::string a, const std::string b) case-insenstive
-// equals(const std::string a, const std::string b) case-senstive
-// ends_with(std::string const& value, std::string const& ending)
-// 
-// convert(const std::string input)
-// convertToWString(const std::string input)
-// convert(Platform::String^ input)
-// convert(std::wstring input)
-// convert(const char* input)
-// convertToLPCWSTR(Platform::String^ input)
-// convertToLPCWSTR(std::string input)
-// convertToChar(Platform::String^ input)
-// 
-// tolower(std::string& input)
-// tolower(Platform::String^ &input)
-// toupper(std::string& input)
-// toupper(Platform::String^& input)
-// 
-// windowsPath(std::string& path)
-// windowsPath(Platform::String^ &path)
-// merge(std::string targetFullPath, std::string subFullPath)
-// 
-// findInList(std::list<T>& inputList, T& str)
-// isWriteMode(const char* mode)
-// getSubRoot(std::string parent, std::string child)
-
 #pragma once
 
 #include <cstdint>

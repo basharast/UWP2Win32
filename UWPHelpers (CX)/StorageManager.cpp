@@ -7,45 +7,8 @@
 // This code must keep support for lower builds (15063+)
 // Try always to find possible way to keep that support
 
-// Functions:
-// GetWorkingFolder()
-// SetWorkingFolder(std::string location)
-// GetInstallationFolder()
-// GetLocalFolder()
-// GetTempFolder()
-// GetPicturesFolder()
-// GetVideosFolder()
-// GetDocumentsFolder()
-// GetMusicFolder()
-// GetPreviewPath(std::string path)
-//
-// CreateFileUWP(std::string path, int accessMode, int shareMode, int openMode)
-// CreateFileUWP(std::wstring path, int accessMode, int shareMode, int openMode)
-// GetFileStream(std::string path, const char* mode)
-// IsValidUWP(std::string path)
-// IsExistsUWP(std::string path)
-// IsDirectoryUWP(std::string path)
-// 
-// GetFolderContents(std::string path, bool deepScan = false)
-// GetFolderContents(std::wstring path, bool deepScan = false)
-// GetFileInfoUWP(std::string path)
-//
-// GetSizeUWP(std::string path)
-// DeleteUWP(std::string path)
-// CreateDirectoryUWP(std::string path, bool replaceExisting)
-// RenameUWP(std::string path, std::string name)
-// CopyUWP(std::string path, std::string name)
-// MoveUWP(std::string path, std::string name)
-//
-// OpenFile(std::string path)
-// OpenFolder(std::string path)
-// IsFirstStart()
-//
-// GetLogFile()
-// SaveLogs()
-// CleanupLogs()
-
 #include "pch.h"
+#include <collection.h>
 
 #include "StorageConfig.h"
 #include "StorageManager.h"
@@ -483,27 +446,61 @@ FILE* GetFileStreamFromApp(std::string path, const char* mode) {
 
 	auto pathResolved = PathUWP(ResolvePathUWP(path));
 	HANDLE handle;
-	auto access = GENERIC_READ;
-	auto share = FILE_SHARE_READ;
-	auto creation = OPEN_EXISTING;
-	bool isWrite = isWriteMode(mode);
-	bool isAppend = isAppendMode(mode);
 
-	if (isWrite) {
-		access = GENERIC_WRITE;
-		share = FILE_SHARE_WRITE;
-		creation = isAppend ? OPEN_ALWAYS : CREATE_ALWAYS;
+	DWORD dwDesiredAccess = GENERIC_READ;
+	DWORD dwShareMode = FILE_SHARE_READ;
+	DWORD dwCreationDisposition = OPEN_EXISTING;
+	int flags = 0;
+
+	if (!strcmp(mode, "r") || !strcmp(mode, "rb") || !strcmp(mode, "rt"))
+	{
+		dwDesiredAccess = GENERIC_READ;
+		dwShareMode = FILE_SHARE_READ;
+		dwCreationDisposition = OPEN_EXISTING;
+		flags = _O_RDONLY;
 	}
-#if !defined(_M_ARM)
-	handle = CreateFile2FromAppW(pathResolved.ToWString().c_str(), access, share, creation, nullptr);
-#else
-	handle = CreateFile2(pathResolved.ToWString().c_str(), access, share, creation, nullptr);
-#endif
+	else if (!strcmp(mode, "r+") || !strcmp(mode, "rb+") || !strcmp(mode, "r+b") || !strcmp(mode, "rt+") || !strcmp(mode, "r+t"))
+	{
+		dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+		dwCreationDisposition = OPEN_EXISTING;
+		flags = _O_RDWR;
+	}
+	else if (!strcmp(mode, "a") || !strcmp(mode, "ab") || !strcmp(mode, "at")) {
+		dwDesiredAccess = GENERIC_WRITE;
+		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+		dwCreationDisposition = CREATE_ALWAYS;
+		flags = _O_APPEND | _O_WRONLY | _O_CREAT;
+	}
+	else if (!strcmp(mode, "a+") || !strcmp(mode, "ab+") || !strcmp(mode, "a+b") || !strcmp(mode, "at+") || !strcmp(mode, "a+t")) {
+		dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+		dwCreationDisposition = CREATE_ALWAYS;
+		flags = _O_APPEND | _O_RDWR | _O_CREAT;
+	}
+	else if (!strcmp(mode, "w") || !strcmp(mode, "wb") || !strcmp(mode, "wt"))
+	{
+		dwDesiredAccess = GENERIC_WRITE;
+		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+		dwCreationDisposition = CREATE_ALWAYS;
+		flags = _O_WRONLY | _O_CREAT | _O_TRUNC;
+	}
+	else if (!strcmp(mode, "w+") || !strcmp(mode, "wb+") || !strcmp(mode, "w+b") || !strcmp(mode, "wt+") || !strcmp(mode, "w+t"))
+	{
+		dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+		dwCreationDisposition = CREATE_ALWAYS;
+		flags = _O_RDWR | _O_CREAT | _O_TRUNC;
+	}
+
+	if (strpbrk(mode, "t") != nullptr) {
+		flags |= _O_TEXT;
+	}
+
+    // Legacy support, for newer builds use 'CreateFile2FromAppW'
+	handle = CreateFile2(pathResolved.ToWString().c_str(), dwDesiredAccess, dwShareMode, dwCreationDisposition, nullptr);
+
 	if (handle != INVALID_HANDLE_VALUE) {
-		int flags = _O_RDONLY;
-		if (isWrite) {
-			flags = _O_RDWR;
-		}
 		file = _fdopen(_open_osfhandle((intptr_t)handle, flags), mode);
 	}
 
@@ -795,7 +792,6 @@ bool OpenFile(std::string path) {
 	}
 	else {
 		auto uri = ref new Windows::Foundation::Uri(convert(path));
-
 		ExecuteTask(state, Windows::System::Launcher::LaunchUriAsync(uri), false);
 	}
 	return state;
@@ -807,15 +803,21 @@ bool OpenFile(std::wstring path) {
 
 bool OpenFolder(std::string path) {
 	bool state = false;
-	auto uri = ref new Windows::Foundation::Uri(convert(path));
-	
-	auto storageItem = GetStorageItem(path);
-	if (storageItem.IsValid()) {
-		if (storageItem.IsDirectory()) {
-			ExecuteTask(state, Windows::System::Launcher::LaunchFolderAsync(storageItem.GetStorageFolder()), false);
-		}
-		else {
-			OpenFile(storageItem.GetPath());
+	PathUWP itemPath(path);
+	Platform::String^ wString = ref new Platform::String(itemPath.ToWString().c_str());
+	StorageFolder^ storageItem;
+	ExecuteTask(storageItem, StorageFolder::GetFolderFromPathAsync(wString));
+	if (storageItem != nullptr) {
+		ExecuteTask(state, Windows::System::Launcher::LaunchFolderAsync(storageItem), false);
+	}
+	else {
+		// Try as it's file
+		PathUWP parent = PathUWP(itemPath.GetDirectory());
+		Platform::String^ wParentString = ref new Platform::String(parent.ToWString().c_str());
+
+		ExecuteTask(storageItem, StorageFolder::GetFolderFromPathAsync(wParentString));
+		if (storageItem != nullptr) {
+			ExecuteTask(state, Windows::System::Launcher::LaunchFolderAsync(storageItem), false);
 		}
 	}
 	return state;
@@ -823,6 +825,27 @@ bool OpenFolder(std::string path) {
 
 bool OpenFolder(std::wstring path) {
 	return OpenFolder(convert(path));
+}
+
+int64_t GetLocalFreeSpace() {
+	Platform::String^ freeSpaceKey = ref new Platform::String(L"System.FreeSpace");
+	Platform::Collections::Vector<Platform::String^>^ propertiesToRetrieve = ref new Platform::Collections::Vector<Platform::String^>();
+	propertiesToRetrieve->Append(freeSpaceKey);
+	Windows::Foundation::Collections::IMap<Platform::String^, Platform::Object^>^ result;
+	ExecuteTask(result, ApplicationData::Current->LocalFolder->Properties->RetrievePropertiesAsync(propertiesToRetrieve));
+	int64_t remainingSize = 0;
+	if (result != nullptr && result->Size > 0) {
+		try {
+			auto it = result->First();
+			auto sizeString = it->Current->Value->ToString();
+			const wchar_t* begin = sizeString->Data();
+			remainingSize = (int64_t)std::wcstol(begin, nullptr, 10);
+		}
+		catch (...) {
+
+		}
+	}
+	return remainingSize;
 }
 
 bool IsFirstStart() {

@@ -4,14 +4,6 @@
 // Telegram: @basharastifan
 // GitHub: https://github.com/basharast/UWP2Win32
 
-// Functions:
-// SendKeyToTextEdit(vKey, flags, state) [state->KEY_DOWN or KEY_UP]
-// ShowInputKeyboard()
-// HideInputKeyboard()
-// IsCapsLockOn()
-// IsShiftOnHold()
-// IsCtrlOnHold()
-
 #include "StorageExtensions.h"
 
 // Input Handler

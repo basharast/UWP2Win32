@@ -3,15 +3,6 @@
 // Email: bashar@astifan.online
 // Telegram: @basharastifan
 
-// Functions:
-// GetFileHandle(StorageFile^ file, HANDLE* handle, HANDLE_ACCESS_OPTIONS accessMode, HANDLE_SHARING_OPTIONS shareMode)
-// GetFileHandleFromFolder(StorageFolder^ folder, std::string filename, HANDLE* handle, HANDLE_ACCESS_OPTIONS accessMode, HANDLE_SHARING_OPTIONS shareMode, HANDLE_CREATION_OPTIONS openMode)
-// GetFolderHandle(StorageFolder^ folder, HANDLE* handle, HANDLE_ACCESS_OPTIONS accessMode, HANDLE_SHARING_OPTIONS shareMode)
-// 
-// GetAccessMode(int accessMode)
-// GetShareMode(int shareMode)
-// GetOpenMode(int openMode)
-
 #include "StorageHandler.h"
 #include "StorageExtensions.h"
 

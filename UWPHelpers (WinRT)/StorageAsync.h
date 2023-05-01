@@ -6,11 +6,6 @@
 
 // WaitTask functions originally by Team Kodi
 
-// Functions:
-// ExecuteTask(out, task) [for IAsyncOperation]
-// ExecuteTask(out, task, def) [for IAsyncOperation]
-// ExecuteTask(action) [for IAsyncAction such as 'Delete']
-
 #pragma once
 
 #include "pch.h"

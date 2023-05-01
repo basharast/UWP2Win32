@@ -7,11 +7,6 @@
 // Thanks to RetroArch/Libretro team for this idea 
 // This is improved version of the original idea
 
-// Functions:
-// ExecuteTask(out, task) [for IAsyncOperation]
-// ExecuteTask(out, task, def) [for IAsyncOperation]
-// ExecuteTask(action) [for IAsyncAction such as 'Delete']
-
 #include "StorageAsync.h"
 
 bool ActionPass(winrt::Windows::Foundation::IAsyncAction action)

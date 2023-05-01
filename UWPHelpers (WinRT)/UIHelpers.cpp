@@ -4,13 +4,6 @@
 // Telegram: @basharastifan
 // GitHub: https://github.com/basharast/UWP2Win32
 
-// Functions:
-// ShowInputKeyboard()
-// HideInputKeyboard()
-// IsCapsLockOn()
-// IsShiftOnHold()
-// IsCtrlOnHold()
-
 #include "UIHelpers.h"
 
 #include <winrt/Windows.System.h>

@@ -4,47 +4,6 @@
 // Telegram: @basharastifan
 // GitHub: https://github.com/basharast/UWP2Win32
 
-// This code must keep support for lower builds (15063+)
-// Try always to find possible way to keep that support
-
-// Functions:
-// GetWorkingFolder()
-// SetWorkingFolder(std::string location)
-// GetInstallationFolder()
-// GetLocalFolder()
-// GetTempFolder()
-// GetPicturesFolder()
-// GetVideosFolder()
-// GetDocumentsFolder()
-// GetMusicFolder()
-// GetPreviewPath(std::string path)
-//
-// CreateFileUWP(std::string path, int accessMode, int shareMode, int openMode)
-// CreateFileUWP(std::wstring path, int accessMode, int shareMode, int openMode)
-// GetFileStream(std::string path, const char* mode)
-// IsValidUWP(std::string path)
-// IsExistsUWP(std::string path)
-// IsDirectoryUWP(std::string path)
-// 
-// GetFolderContents(std::string path, T& files)
-// GetFolderContents(std::wstring path, T& files)
-// GetFileInfoUWP(std::string path, T& info)
-//
-// GetSizeUWP(std::string path)
-// DeleteUWP(std::string path)
-// CreateDirectoryUWP(std::string path, bool replaceExisting)
-// RenameUWP(std::string path, std::string name)
-// CopyUWP(std::string path, std::string name)
-// MoveUWP(std::string path, std::string name)
-//
-// OpenFile(std::string path)
-// OpenFolder(std::string path)
-// IsFirstStart()
-//
-// GetLogFile()
-// SaveLogs()
-// CleanupLogs()
-
 #include "pch.h"
 
 #include "StorageConfig.h"
@@ -483,41 +442,72 @@ FILE* GetFileStream(std::string path, const char* mode) {
 
 	return file;
 }
-FILE* GetFileStreamFromApp(std::string path, const char* mode)
-{
 
-  FILE* file{};
+FILE* GetFileStreamFromApp(std::string path, const char* mode) {
 
-  auto pathResolved = PathUWP(ResolvePathUWP(path));
-  HANDLE handle;
-  auto access = GENERIC_READ;
-  auto share = FILE_SHARE_READ;
-  auto creation = OPEN_EXISTING;
-  bool isWrite = isWriteMode(mode);
-  bool isAppend = isAppendMode(mode);
+	FILE* file{};
 
-  if (isWrite)
-  {
-    access = GENERIC_WRITE;
-    share = FILE_SHARE_WRITE;
-    creation = isAppend ? OPEN_ALWAYS : CREATE_ALWAYS;
-  }
-#if !defined(_M_ARM)
-  handle = CreateFile2FromAppW(pathResolved.ToWString().c_str(), access, share, creation, nullptr);
-#else
-  handle = CreateFile2(pathResolved.ToWString().c_str(), access, share, creation, nullptr);
-#endif
-  if (handle != INVALID_HANDLE_VALUE)
-  {
-    int flags = _O_RDONLY;
-    if (isWrite)
-    {
-      flags = _O_RDWR;
-    }
-    file = _fdopen(_open_osfhandle((intptr_t)handle, flags), mode);
-  }
+	auto pathResolved = PathUWP(ResolvePathUWP(path));
+	HANDLE handle;
 
-  return file;
+	DWORD dwDesiredAccess = GENERIC_READ;
+	DWORD dwShareMode = FILE_SHARE_READ;
+	DWORD dwCreationDisposition = OPEN_EXISTING;
+	int flags = 0;
+
+	if (!strcmp(mode, "r") || !strcmp(mode, "rb") || !strcmp(mode, "rt"))
+	{
+		dwDesiredAccess = GENERIC_READ;
+		dwShareMode = FILE_SHARE_READ;
+		dwCreationDisposition = OPEN_EXISTING;
+		flags = _O_RDONLY;
+	}
+	else if (!strcmp(mode, "r+") || !strcmp(mode, "rb+") || !strcmp(mode, "r+b") || !strcmp(mode, "rt+") || !strcmp(mode, "r+t"))
+	{
+		dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+		dwCreationDisposition = OPEN_EXISTING;
+		flags = _O_RDWR;
+	}
+	else if (!strcmp(mode, "a") || !strcmp(mode, "ab") || !strcmp(mode, "at")) {
+		dwDesiredAccess = GENERIC_WRITE;
+		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+		dwCreationDisposition = CREATE_ALWAYS;
+		flags = _O_APPEND | _O_WRONLY | _O_CREAT;
+	}
+	else if (!strcmp(mode, "a+") || !strcmp(mode, "ab+") || !strcmp(mode, "a+b") || !strcmp(mode, "at+") || !strcmp(mode, "a+t")) {
+		dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+		dwCreationDisposition = CREATE_ALWAYS;
+		flags = _O_APPEND | _O_RDWR | _O_CREAT;
+	}
+	else if (!strcmp(mode, "w") || !strcmp(mode, "wb") || !strcmp(mode, "wt"))
+	{
+		dwDesiredAccess = GENERIC_WRITE;
+		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+		dwCreationDisposition = CREATE_ALWAYS;
+		flags = _O_WRONLY | _O_CREAT | _O_TRUNC;
+	}
+	else if (!strcmp(mode, "w+") || !strcmp(mode, "wb+") || !strcmp(mode, "w+b") || !strcmp(mode, "wt+") || !strcmp(mode, "w+t"))
+	{
+		dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+		dwCreationDisposition = CREATE_ALWAYS;
+		flags = _O_RDWR | _O_CREAT | _O_TRUNC;
+	}
+
+	if (strpbrk(mode, "t") != nullptr) {
+		flags |= _O_TEXT;
+	}
+
+    // Legacy support, for newer builds use 'CreateFile2FromAppW'
+	handle = CreateFile2(pathResolved.ToWString().c_str(), dwDesiredAccess, dwShareMode, dwCreationDisposition, nullptr);
+
+	if (handle != INVALID_HANDLE_VALUE) {
+		file = _fdopen(_open_osfhandle((intptr_t)handle, flags), mode);
+	}
+
+	return file;
 }
 
 #pragma region Content Helpers
@@ -791,20 +781,53 @@ bool OpenFile(std::string path) {
   return state;
 }
 
-bool OpenFolder(std::string path) {
-	bool state = false;
-	auto uri{ Uri(convert(path)) };
-	
-	auto storageItem = GetStorageItem(path);
-	if (storageItem.IsValid()) {
-		if (storageItem.IsDirectory()) {
-			ExecuteTask(state, Launcher::LaunchFolderAsync(storageItem.GetStorageFolder()), false);
-		}
-		else {
-			OpenFile(storageItem.GetPath());
-		}
-	}
-	return state;
+bool OpenFolder(std::string path)
+{
+  bool state = false;
+  winrt::hstring wString = convert(path);
+  StorageFolder storageItem = nullptr;
+  ExecuteTask(storageItem, StorageFolder::GetFolderFromPathAsync(wString));
+  if (storageItem != nullptr)
+  {
+     ExecuteTask(state, winrt::Windows::System::Launcher::LaunchFolderAsync(storageItem), false);
+  }
+  else
+  {
+    // Try as it's file
+    PathUWP parent = PathUWP(path);
+    auto wParentString = hstring(parent.ToWString());
+
+    ExecuteTask(storageItem, StorageFolder::GetFolderFromPathAsync(wParentString));
+    if (storageItem != nullptr)
+    {
+      ExecuteTask(state, winrt::Windows::System::Launcher::LaunchFolderAsync(storageItem), false);
+    }
+  }
+  return state;
+}
+
+int64_t GetLocalFreeSpace()
+{
+  hstring freeSpaceKey = hstring(L"System.FreeSpace");
+  winrt::Windows::Foundation::Collections::IVector<hstring> propertiesToRetrieve{ winrt::single_threaded_vector<hstring>() };
+  propertiesToRetrieve.Append(freeSpaceKey);
+  winrt::Windows::Foundation::Collections::IMap<hstring, winrt::Windows::Foundation::IInspectable> result;
+  ExecuteTask(result, ApplicationData::Current().LocalFolder().Properties().RetrievePropertiesAsync(propertiesToRetrieve));
+  int64_t remainingSize = 0;
+  if (result != nullptr && result.Size() > 0)
+  {
+    try
+    {
+      auto it = result.First();
+      auto sizeString = it.Current().Value().as<IPropertyValue>();
+      const wchar_t* begin = sizeString.GetString().c_str();
+      remainingSize = (int64_t)std::wcstol(begin, nullptr, 10);
+    }
+    catch (...)
+    {
+    }
+  }
+  return remainingSize;
 }
 
 bool IsFirstStart() {

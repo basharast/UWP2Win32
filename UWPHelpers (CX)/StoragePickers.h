@@ -6,10 +6,6 @@
 // This code must keep support for lower builds (15063+)
 // Try always to find possible way to keep that support
 
-// Functions:
-// ChooseFolder()
-// ChooseFile(std::vector<std::string> exts)
-
 #pragma once
 
 #include <ppl.h>

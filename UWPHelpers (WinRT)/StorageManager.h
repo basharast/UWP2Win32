@@ -7,44 +7,6 @@
 // This code must keep support for lower builds (15063+)
 // Try always to find possible way to keep that support
 
-// Functions:
-// GetWorkingFolder()
-// SetWorkingFolder(std::string location)
-// GetInstallationFolder()
-// GetLocalFolder()
-// GetTempFolder()
-// GetPicturesFolder()
-// GetVideosFolder()
-// GetDocumentsFolder()
-// GetMusicFolder()
-// GetPreviewPath(std::string path)
-//
-// CreateFileUWP(std::string path, int accessMode, int shareMode, int openMode)
-// CreateFileUWP(std::wstring path, int accessMode, int shareMode, int openMode)
-// GetFileStream(std::string path, const char* mode)
-// IsValidUWP(std::string path)
-// IsExistsUWP(std::string path)
-// IsDirectoryUWP(std::string path)
-// 
-// GetFolderContents(std::string path, T& files)
-// GetFolderContents(std::wstring path, T& files)
-// GetFileInfoUWP(std::string path, T& info)
-//
-// GetSizeUWP(std::string path)
-// DeleteUWP(std::string path)
-// CreateDirectoryUWP(std::string path, bool replaceExisting)
-// RenameUWP(std::string path, std::string name)
-// CopyUWP(std::string path, std::string name)
-// MoveUWP(std::string path, std::string name)
-//
-// OpenFile(std::string path)
-// OpenFolder(std::string path)
-// IsFirstStart()
-//
-// GetLogFile()
-// SaveLogs()
-// CleanupLogs()
-
 #pragma once 
 
 #include <list>
@@ -102,6 +64,7 @@ bool IsContainsAccessibleItems(std::string path);
 bool IsRootForAccessibleItems(std::string path);
 // 'checkIfContainsFutureAccessItems' for listing purposes not real access, 'driveName' like C:
 bool CheckDriveAccess(std::string driveName, bool checkIfContainsFutureAccessItems);
+int64_t GetLocalFreeSpace();
 
 // Log helpers
 std::string GetLogFile();

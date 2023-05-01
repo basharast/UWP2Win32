@@ -7,24 +7,6 @@
 // This code must keep support for lower builds (15063+)
 // Try always to find possible way to keep that support
 
-// Functions:
-// GetDataFromLocalSettings(winrt::hstring key)
-// AddDataToLocalSettings(winrt::hstring key, winrt::hstring data, bool replace)
-// 
-// AddFolderToFutureList(StorageFolder^ folder)
-// AddFileToFutureList(StorageFile^ file)
-// 
-// AddToAccessibleDirectories(StorageFolder^ folder)
-// AddToAccessibleFiles(StorageFile^ file)
-// UpdateDirectoriesByFutureList()
-// UpdateFilesByFutureList()
-// FillAccessLists()
-// 
-// GetFolderByKey(winrt::hstring key)
-// GetFileByKey(winrt::hstring key)
-// AppendFolderByToken(winrt::hstring token)
-// AppendFileByToken(winrt::hstring token)
-
 #include "StorageConfig.h"
 #include "StorageLog.h"
 #include "StorageExtensions.h"

@@ -9,11 +9,6 @@
 // This code must keep support for lower builds (15063+)
 // Try always to find possible way to keep that support
 
-// Functions:
-// CreateFileUWP(const char* path, int accessMode, int shareMode, int openMode)
-// GetFileAttributesUWP(const void* name, void* lpFileInformation)
-// DeleteFileUWP(const void* name)
-
 #include "UWP2C.h"
 #include "StorageManager.h"
 #include "StorageExtensions.h"

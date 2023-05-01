@@ -7,30 +7,6 @@
 // This code must keep support for lower builds (15063+)
 // Try always to find possible way to keep that support
 
-// Functions:
-// IsValid()
-// GetPath()
-// GetName()
-// Delete()
-// Equal(std::string path)
-// Equal(Path path)
-// Equal(winrt::hstring path)
-// Equal(StorageFolder folder)
-// GetSize(bool updateCache)
-// CreateFolder(std::string name, bool replaceExisting)
-// CreateFile(std::string name)
-// Rename(std::string name)
-// GetAllFiles(bool useWindowsIndexer)
-// GetAllFolders(bool useWindowsIndexer)
-// Contains(Path path, IStorageItem& storageItem)
-// Contains(std::string item)
-// Copy(StorageFolderW folder)
-// Move(StorageFolderW destination)
-// GetHandle(HANDLE* handle, HANDLE_ACCESS_OPTIONS access)
-// GetProperties()
-// GetStorageFolder()
-// GetFileStream(std::string name, const char* mode)
-
 #pragma once 
 
 #include "pch.h"

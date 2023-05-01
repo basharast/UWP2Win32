@@ -7,12 +7,6 @@
 // This code must keep support for lower builds (15063+)
 // Try always to find possible way to keep that support
 
-// Functions:
-// GetDataFromLocalSettings(std::string key)
-// AddDataToLocalSettings(std::string key, std::string data, bool replace)
-// 
-// FillLookupList()
-
 #pragma once
 
 #include <string>
