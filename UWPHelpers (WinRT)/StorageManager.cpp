@@ -21,6 +21,8 @@
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.ApplicationModel.h>
 #include <winrt/Windows.System.h>
+#include <winrt/Windows.Foundation.Collections.h>
+#include <vector>
 
 using namespace winrt::Windows::Storage;
 using namespace winrt::Windows::Storage::Pickers;
