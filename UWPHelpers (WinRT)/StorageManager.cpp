@@ -367,12 +367,12 @@ bool IsValidUWP(std::string path) {
     state = true;
   }
 
-  if (!state)
-  {
-    auto p = PathUWP(path);
-    std::string driveName = p.GetRootVolume().ToString();
-    state = CheckDriveAccess(driveName, false);
-  }
+  //if (!state)
+  //{
+  //  auto p = PathUWP(path);
+  //  std::string driveName = p.GetRootVolume().ToString();
+  //  state = CheckDriveAccess(driveName, false);
+  //}
 
   return !state;
 }
