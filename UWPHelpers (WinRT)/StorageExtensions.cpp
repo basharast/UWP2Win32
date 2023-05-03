@@ -4,6 +4,7 @@
 // Telegram: @basharastifan
 // GitHub: https://github.com/basharast/UWP2Win32
 
+#include <fcntl.h>
 #include "StorageExtensions.h"
 
 #pragma region Inernal Helpers
@@ -261,11 +262,76 @@ std::string& trim(std::string& s, const char* t)
 	return ltrim(rtrim(s, t), t);
 }
 
-bool isWriteMode(const char* mode) {
-	return (!strcmp(mode, "w") || !strcmp(mode, "wb") || !strcmp(mode, "wt") || !strcmp(mode, "at") || !strcmp(mode, "a"));
-}
-bool isAppendMode(const char* mode) {
-	return (!strcmp(mode, "at") || !strcmp(mode, "a"));
+FILE_OPEN_UWP_MODE* GetFileMode(const char* mode) {
+	size_t size = sizeof(FILE_OPEN_UWP_MODE);
+	FILE_OPEN_UWP_MODE* openMode = (FILE_OPEN_UWP_MODE*)(malloc(size));
+
+	if (openMode) {
+		openMode->dwDesiredAccess = GENERIC_READ;
+		openMode->dwShareMode = FILE_SHARE_READ;
+		openMode->dwCreationDisposition = OPEN_EXISTING;
+		openMode->flags = 0;
+		openMode->isWrite = false;
+		openMode->isAppend = false;
+		openMode->isCreate = false;
+
+		if (!strcmp(mode, "r") || !strcmp(mode, "rb") || !strcmp(mode, "rt"))
+		{
+			openMode->dwDesiredAccess = GENERIC_READ;
+			openMode->dwShareMode = FILE_SHARE_READ;
+			openMode->dwCreationDisposition = OPEN_EXISTING;
+			openMode->flags = _O_RDONLY;
+		}
+		else if (!strcmp(mode, "r+") || !strcmp(mode, "rb+") || !strcmp(mode, "r+b") || !strcmp(mode, "rt+") || !strcmp(mode, "r+t"))
+		{
+			openMode->dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+			openMode->dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			openMode->dwCreationDisposition = OPEN_EXISTING;
+			openMode->flags = _O_RDWR;
+			openMode->isWrite = true;
+		}
+		else if (!strcmp(mode, "a") || !strcmp(mode, "ab") || !strcmp(mode, "at")) {
+			openMode->dwDesiredAccess = GENERIC_WRITE;
+			openMode->dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			openMode->dwCreationDisposition = OPEN_ALWAYS;
+			openMode->flags = _O_APPEND | _O_WRONLY | _O_CREAT;
+			openMode->isWrite = true;
+			openMode->isCreate = true;
+			openMode->isAppend = true;
+		}
+		else if (!strcmp(mode, "a+") || !strcmp(mode, "ab+") || !strcmp(mode, "a+b") || !strcmp(mode, "at+") || !strcmp(mode, "a+t")) {
+			openMode->dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+			openMode->dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			openMode->dwCreationDisposition = OPEN_ALWAYS;
+			openMode->flags = _O_APPEND | _O_RDWR | _O_CREAT;
+			openMode->isWrite = true;
+			openMode->isCreate = true;
+			openMode->isAppend = true;
+		}
+		else if (!strcmp(mode, "w") || !strcmp(mode, "wb") || !strcmp(mode, "wt"))
+		{
+			openMode->dwDesiredAccess = GENERIC_WRITE;
+			openMode->dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			openMode->dwCreationDisposition = CREATE_ALWAYS;
+			openMode->flags = _O_WRONLY | _O_CREAT | _O_TRUNC;
+			openMode->isWrite = true;
+			openMode->isCreate = true;
+		}
+		else if (!strcmp(mode, "w+") || !strcmp(mode, "wb+") || !strcmp(mode, "w+b") || !strcmp(mode, "wt+") || !strcmp(mode, "w+t"))
+		{
+			openMode->dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+			openMode->dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			openMode->dwCreationDisposition = CREATE_ALWAYS;
+			openMode->flags = _O_RDWR | _O_CREAT | _O_TRUNC;
+			openMode->isWrite = true;
+			openMode->isCreate = true;
+		}
+
+		if (strpbrk(mode, "t") != nullptr) {
+			openMode->flags |= _O_TEXT;
+		}
+	}
+	return openMode;
 }
 
 // Parent and child full path

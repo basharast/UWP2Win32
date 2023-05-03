@@ -169,23 +169,13 @@ public:
 	// Get file stream
 	FILE* GetStream(const char* mode) {
 		HANDLE handle;
-		auto access = GENERIC_READ;
-		auto share = FILE_SHARE_READ;
-		bool isWrite = isWriteMode(mode);
-		if (isWrite) {
-			access = GENERIC_WRITE;
-			share = FILE_SHARE_WRITE;
-		}
-		HRESULT hr = GetHandle(&handle, access, share);
+		auto fileMode = GetFileMode(mode);
 
+		HRESULT hr = GetHandle(&handle, fileMode->dwDesiredAccess, fileMode->dwShareMode);
 		FILE* file{};
 		if (hr == S_OK && handle != INVALID_HANDLE_VALUE) {
-			int flags = _O_RDONLY;
-			if (isWrite) {
-				flags = _O_RDWR;
-			}
-			UWP_DEBUG_LOG(UWPSMT, "Opening file (%s) with flag:%d mode:%s", GetPath().c_str(), flags, mode);
-			file = _fdopen(_open_osfhandle((intptr_t)handle, flags), mode);
+			UWP_ERROR_LOG(UWPSMT, "Opening file (%s) with flag:%d mode:%s", GetPath().c_str(), fileMode->flags, mode);
+			file = _fdopen(_open_osfhandle((intptr_t)handle, fileMode->flags), mode);
 		}
 		return file;
 	}

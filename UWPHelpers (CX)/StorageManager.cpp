@@ -80,9 +80,8 @@ std::string GetMusicFolder() {
 std::string GetPreviewPath(std::string path) {
 	std::string pathView = path;
 	windowsPath(pathView);
-	replace(pathView, GetLocalFolder(), "LocalState");
-	replace(pathView, GetTempFolder(), "TempState");
-	replace(pathView, GetInstallationFolder(), "Installation folder");
+	auto appData = replace(GetLocalFolder(), "\\LocalState", "");
+	pathView = replace(pathView, appData, "AppData");
 	return pathView;
 }
 bool isLocalState(std::string path) {
@@ -251,10 +250,10 @@ bool IsRootForAccessibleItems(std::string path) {
 bool CreateIfNotExists(int openMode) {
 	switch (openMode)
 	{
+	case CREATE_ALWAYS:
 	case OPEN_ALWAYS:
 	case CREATE_NEW:
 		return true;
-		break;
 	default:
 		return false;
 	}
@@ -299,21 +298,30 @@ bool CheckDriveAccess(std::string driveName, bool checkIfContainsFutureAccessIte
 	}
 	else {
 		try {
+#if !defined(_M_ARM)
 			wchar_t* filteredPath = _wcsdup(convert(driveName)->Data());
 			wcscat_s(filteredPath, sizeof(L"\\*.*"), L"\\*.*");
-#if !defined(_M_ARM)
 			searchResults = FindFirstFileExFromAppW(
 				filteredPath, FindExInfoBasic, &findDataResult,
 				FindExSearchNameMatch, NULL, 0);
-#else
-			searchResults = FindFirstFileEx(
-				filteredPath, FindExInfoBasic, &findDataResult,
-				FindExSearchNameMatch, NULL, 0);
-#endif
 			state = searchResults != NULL && searchResults != INVALID_HANDLE_VALUE;
 			if (state) {
 				FindClose(searchResults);
 			}
+#else
+			auto dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+			auto dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			auto dwCreationDisposition = CREATE_ALWAYS;
+
+			auto testFile = std::string(driveName);
+			testFile.append("\\.UWPAccessCheck");
+			HANDLE h = CreateFile2(convertToLPCWSTR(testFile), dwDesiredAccess, dwShareMode, dwCreationDisposition, nullptr);
+			if (h != INVALID_HANDLE_VALUE) {
+				state = true;
+				CloseHandle(h);
+				DeleteFileW(convertToLPCWSTR(testFile));
+			}
+#endif
 			accessState.insert(std::make_pair(driveName, state));
 		}
 		catch (...) {
@@ -354,12 +362,12 @@ bool IsValidUWP(std::string path) {
 			state = true;
 		}
 
-	//if (!state)
-	//{
-	//	auto p = PathUWP(path);
-	//	std::string driveName = p.GetRootVolume().ToString();
-	//	state = CheckDriveAccess(driveName, false);
-	//}
+	if (!state)
+	{
+		auto p = PathUWP(path);
+		std::string driveName = p.GetRootVolume().ToString();
+		state = CheckDriveAccess(driveName, false);
+	}
 
 	return !state;
 }
@@ -445,63 +453,14 @@ FILE* GetFileStreamFromApp(std::string path, const char* mode) {
 	FILE* file{};
 
 	auto pathResolved = PathUWP(ResolvePathUWP(path));
-	HANDLE handle;
+	HANDLE handle = INVALID_HANDLE_VALUE;
 
-	DWORD dwDesiredAccess = GENERIC_READ;
-	DWORD dwShareMode = FILE_SHARE_READ;
-	DWORD dwCreationDisposition = OPEN_EXISTING;
-	int flags = 0;
-
-	if (!strcmp(mode, "r") || !strcmp(mode, "rb") || !strcmp(mode, "rt"))
-	{
-		dwDesiredAccess = GENERIC_READ;
-		dwShareMode = FILE_SHARE_READ;
-		dwCreationDisposition = OPEN_EXISTING;
-		flags = _O_RDONLY;
+	auto fileMode = GetFileMode(mode);
+	if (fileMode) {
+		handle = CreateFile2(pathResolved.ToWString().c_str(), fileMode->dwDesiredAccess, fileMode->dwShareMode, fileMode->dwCreationDisposition, nullptr);
 	}
-	else if (!strcmp(mode, "r+") || !strcmp(mode, "rb+") || !strcmp(mode, "r+b") || !strcmp(mode, "rt+") || !strcmp(mode, "r+t"))
-	{
-		dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
-		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
-		dwCreationDisposition = OPEN_EXISTING;
-		flags = _O_RDWR;
-	}
-	else if (!strcmp(mode, "a") || !strcmp(mode, "ab") || !strcmp(mode, "at")) {
-		dwDesiredAccess = GENERIC_WRITE;
-		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
-		dwCreationDisposition = CREATE_ALWAYS;
-		flags = _O_APPEND | _O_WRONLY | _O_CREAT;
-	}
-	else if (!strcmp(mode, "a+") || !strcmp(mode, "ab+") || !strcmp(mode, "a+b") || !strcmp(mode, "at+") || !strcmp(mode, "a+t")) {
-		dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
-		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
-		dwCreationDisposition = CREATE_ALWAYS;
-		flags = _O_APPEND | _O_RDWR | _O_CREAT;
-	}
-	else if (!strcmp(mode, "w") || !strcmp(mode, "wb") || !strcmp(mode, "wt"))
-	{
-		dwDesiredAccess = GENERIC_WRITE;
-		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
-		dwCreationDisposition = CREATE_ALWAYS;
-		flags = _O_WRONLY | _O_CREAT | _O_TRUNC;
-	}
-	else if (!strcmp(mode, "w+") || !strcmp(mode, "wb+") || !strcmp(mode, "w+b") || !strcmp(mode, "wt+") || !strcmp(mode, "w+t"))
-	{
-		dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
-		dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
-		dwCreationDisposition = CREATE_ALWAYS;
-		flags = _O_RDWR | _O_CREAT | _O_TRUNC;
-	}
-
-	if (strpbrk(mode, "t") != nullptr) {
-		flags |= _O_TEXT;
-	}
-
-    // Legacy support, for newer builds use 'CreateFile2FromAppW'
-	handle = CreateFile2(pathResolved.ToWString().c_str(), dwDesiredAccess, dwShareMode, dwCreationDisposition, nullptr);
-
 	if (handle != INVALID_HANDLE_VALUE) {
-		file = _fdopen(_open_osfhandle((intptr_t)handle, flags), mode);
+		file = _fdopen(_open_osfhandle((intptr_t)handle, fileMode->flags), mode);
 	}
 
 	return file;
@@ -827,25 +786,31 @@ bool OpenFolder(std::wstring path) {
 	return OpenFolder(convert(path));
 }
 
-int64_t GetLocalFreeSpace() {
-	Platform::String^ freeSpaceKey = ref new Platform::String(L"System.FreeSpace");
-	Platform::Collections::Vector<Platform::String^>^ propertiesToRetrieve = ref new Platform::Collections::Vector<Platform::String^>();
-	propertiesToRetrieve->Append(freeSpaceKey);
-	Windows::Foundation::Collections::IMap<Platform::String^, Platform::Object^>^ result;
-	ExecuteTask(result, ApplicationData::Current->LocalFolder->Properties->RetrievePropertiesAsync(propertiesToRetrieve));
-	int64_t remainingSize = 0;
-	if (result != nullptr && result->Size > 0) {
-		try {
-			auto it = result->First();
-			auto sizeString = it->Current->Value->ToString();
-			const wchar_t* begin = sizeString->Data();
-			remainingSize = (int64_t)std::wcstol(begin, nullptr, 10);
-		}
-		catch (...) {
+bool GetDriveFreeSpace(Path path, int64_t& space) {
 
+	bool state = false;
+	Platform::String^ wString = ref new Platform::String(path.ToWString().c_str());
+	StorageFolder^ storageItem;
+	ExecuteTask(storageItem, StorageFolder::GetFolderFromPathAsync(wString));
+	if (storageItem != nullptr) {
+		Platform::String^ freeSpaceKey = ref new Platform::String(L"System.FreeSpace");
+		Platform::Collections::Vector<Platform::String^>^ propertiesToRetrieve = ref new Platform::Collections::Vector<Platform::String^>();
+		propertiesToRetrieve->Append(freeSpaceKey);
+		Windows::Foundation::Collections::IMap<Platform::String^, Platform::Object^>^ result;
+		ExecuteTask(result, storageItem->Properties->RetrievePropertiesAsync(propertiesToRetrieve));
+		if (result != nullptr && result->Size > 0) {
+			try {
+				auto value = result->Lookup(L"System.FreeSpace");
+				space = (uint64_t)value;
+				state = true;
+			}
+			catch (...) {
+
+			}
 		}
 	}
-	return remainingSize;
+
+	return state;
 }
 
 bool IsFirstStart() {

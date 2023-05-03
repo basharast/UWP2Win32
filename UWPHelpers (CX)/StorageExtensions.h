@@ -11,6 +11,16 @@
 #include <vector>
 #include <list>
 
+typedef struct {
+	DWORD dwDesiredAccess;
+	DWORD dwShareMode;
+	DWORD dwCreationDisposition;
+	int flags;
+	bool isWrite;
+	bool isAppend;
+	bool isCreate;
+} FILE_OPEN_UWP_MODE;
+
 bool replace(std::string& str, const std::string& from, const std::string& to);
 std::string replace2(const std::string str, const std::string& from, const std::string& to);
 std::vector<std::string> split(const std::string s, char seperator);
@@ -52,8 +62,8 @@ bool findInList(std::list<T>& inputList, T& str) {
 	return (std::find(inputList.begin(), inputList.end(), str) != inputList.end());
 };
 
-bool isWriteMode(const char* mode);
-bool isAppendMode(const char* mode);
+FILE_OPEN_UWP_MODE* GetFileMode(const char* mode);
+
 // Parent and child full path
 std::string getSubRoot(std::string parent, std::string child);
 

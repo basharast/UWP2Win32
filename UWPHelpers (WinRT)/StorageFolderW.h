@@ -414,8 +414,9 @@ public:
 	FILE* GetFileStream(std::string name, const char* mode) {
 		FILE* file{};
 
-		bool createIfNotExists = isWriteMode(mode);
-		bool isAppend = isAppendMode(mode);
+		auto fileMode = GetFileMode(mode);
+		bool createIfNotExists = fileMode->isCreate;
+		bool isAppend = fileMode->isAppend;
 		
 		StorageFile sfile(nullptr);
 

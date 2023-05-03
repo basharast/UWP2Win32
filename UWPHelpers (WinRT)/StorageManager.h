@@ -64,7 +64,7 @@ bool IsContainsAccessibleItems(std::string path);
 bool IsRootForAccessibleItems(std::string path);
 // 'checkIfContainsFutureAccessItems' for listing purposes not real access, 'driveName' like C:
 bool CheckDriveAccess(std::string driveName, bool checkIfContainsFutureAccessItems);
-int64_t GetLocalFreeSpace();
+bool GetDriveFreeSpace(Path path, int64_t& space);
 
 // Log helpers
 std::string GetLogFile();
