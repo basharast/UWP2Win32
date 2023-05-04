@@ -86,8 +86,9 @@ std::string GetPreviewPath(std::string path)
 {
 	std::string pathView = path;
 	windowsPath(pathView);
-	auto appData = replace(GetLocalFolder(), "\\LocalState", "");
-	pathView = replace(pathView, appData, "AppData");
+	std::string appData = GetLocalFolder();
+	replace(appData, "\\LocalState", "");
+	replace(pathView, appData, "AppData");
 	return pathView;
 }
 bool isLocalState(std::string path)
