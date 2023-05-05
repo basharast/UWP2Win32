@@ -271,6 +271,7 @@ bool MoveUWP(std::string path, std::string name);
 bool OpenFile(std::string path);
 bool OpenFolder(std::string path);
 bool IsFirstStart(); // Return true if first start
+bool GetDriveFreeSpace(PathUWP path, int64_t& space) // Get drive free space by folder path (must be in FutureAccess)
 ```
 
 
@@ -288,13 +289,15 @@ I was able to make zip function working by doing the following:
 // Include headers
 #ifdef MS_UWP
 #include "UWP2C.h"
-#include <fileapifromapp.h>
+// For latest builds include 'fileapifromapp.h'
+#include <fileapi.h>
 #endif
 
 // Replace `zip_win32_file_operations_t ops_utf16` by below
 #ifdef MS_UWP
 static BOOL __stdcall GetFileAttr(const void* name, GET_FILEEX_INFO_LEVELS info_level, void* lpFileInformation) {
-	BOOL state = GetFileAttributesExFromAppW(name, info_level, lpFileInformation);
+	// For latest builds use 'GetFileAttributesExFromAppW'
+	BOOL state = GetFileAttributesExW(name, info_level, lpFileInformation);
 	if (state == FALSE) {
 		// Ignore `info_level` not in use for now
 		state = GetFileAttributesUWP(name, lpFileInformation);
@@ -303,7 +306,8 @@ static BOOL __stdcall GetFileAttr(const void* name, GET_FILEEX_INFO_LEVELS info_
 }
 
 static BOOL __stdcall DelFile(const void* name) {
-	BOOL state = DeleteFileFromAppW(name);
+	// For latest builds use 'DeleteFileFromAppW'
+	BOOL state = DeleteFileW(name);
 	if (state == FALSE) {
 		state = DeleteFileUWP(name);
 	}
@@ -335,7 +339,8 @@ and make the following changes:
 
 ```c++
 #ifdef MS_UWP
-	HANDLE h = CreateFile2FromAppW((const wchar_t*)name, access, share_mode, creation_disposition, NULL);
+	// For latest builds use 'CreateFile2FromAppW'
+	HANDLE h = CreateFile2((const wchar_t*)name, access, share_mode, creation_disposition, NULL);
 	if (h == INVALID_HANDLE_VALUE) {
 		h = CreateFileUWP(name, (int)access, (int)share_mode, (int)creation_disposition);
 	}
