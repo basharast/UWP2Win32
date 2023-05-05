@@ -62,7 +62,7 @@ bool AddDataToLocalSettings(Platform::String^ key, Platform::String^ data, bool 
 }
 
 bool AddDataToLocalSettings(std::string key, std::string data, bool replace) {
-	return AddDataToLocalSettings(convert(key), convert(data),replace);
+	return AddDataToLocalSettings(convert(key), convert(data), replace);
 }
 
 // Add item to history list (FutureAccessItems)
@@ -74,7 +74,7 @@ void AddToAccessibleItems(IStorageItem^ item) {
 			break;
 		}
 	}
-	
+
 	if (!isFolderAddedBefore) {
 		FutureAccessItems.push_back(StorageItemW(item));
 	}

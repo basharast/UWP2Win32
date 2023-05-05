@@ -123,7 +123,7 @@ bool isParent(std::string parent, std::string child, std::string childName) {
 	tolower(child);
 	tolower(childName);
 
-	parent.append("\\"+ childName);
+	parent.append("\\" + childName);
 	return parent == child;
 }
 
@@ -207,7 +207,7 @@ void tolower(std::string& input) {
 	std::transform(input.begin(), input.end(), input.begin(), std::tolower);
 }
 
-void tolower(Platform::String^ &input) {
+void tolower(Platform::String^& input) {
 	std::string temp = convert(input);
 	tolower(temp);
 	input = convert(temp);
@@ -227,7 +227,7 @@ void windowsPath(std::string& path) {
 	std::replace(path.begin(), path.end(), '/', '\\');
 }
 
-void windowsPath(Platform::String^ &path) {
+void windowsPath(Platform::String^& path) {
 	std::string temp = convert(path);
 	windowsPath(temp);
 	path = convert(temp);
@@ -343,5 +343,5 @@ std::string getSubRoot(std::string parent, std::string child) {
 	size_t len = childCut.find_first_of('\\', 0);
 	auto subRoot = childCut.substr(0, len);
 
-	return parent + "\\"+ subRoot;
+	return parent + "\\" + subRoot;
 }

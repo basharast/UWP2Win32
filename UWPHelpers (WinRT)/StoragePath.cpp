@@ -10,23 +10,25 @@
 #include "StorageLog.h"
 #include "StorageExtensions.h"
 
-PathUWP::PathUWP(const std::string &str) {
+PathUWP::PathUWP(const std::string& str) {
 	Init(str);
 }
 
-PathUWP::PathUWP(const std::wstring &str) {
+PathUWP::PathUWP(const std::wstring& str) {
 	type_ = PathTypeUWP::NATIVE;
 	Init(convert(str));
 }
 
-void PathUWP::Init(const std::string &str) {
+void PathUWP::Init(const std::string& str) {
 	if (str.empty()) {
 		type_ = PathTypeUWP::UNDEFINED;
 		path_.clear();
-	} else if (starts_with(str, "http://") || starts_with(str, "https://")) {
+	}
+	else if (starts_with(str, "http://") || starts_with(str, "https://")) {
 		type_ = PathTypeUWP::HTTP;
 		path_ = str;
-	} else {
+	}
+	else {
 		type_ = PathTypeUWP::NATIVE;
 		path_ = str;
 	}
@@ -51,7 +53,7 @@ void PathUWP::Init(const std::string &str) {
 
 // We always use forward slashes internally, we convert to backslash only when
 // converted to a wstring.
-PathUWP PathUWP::operator /(const std::string &subdir) const {
+PathUWP PathUWP::operator /(const std::string& subdir) const {
 	// Direct string manipulation.
 
 	if (subdir.empty()) {
@@ -69,24 +71,25 @@ PathUWP PathUWP::operator /(const std::string &subdir) const {
 	return PathUWP(fullPath);
 }
 
-void PathUWP::operator /=(const std::string &subdir) {
+void PathUWP::operator /=(const std::string& subdir) {
 	*this = *this / subdir;
 }
 
-PathUWP PathUWP::WithExtraExtension(const std::string &ext) const {
+PathUWP PathUWP::WithExtraExtension(const std::string& ext) const {
 	return PathUWP(path_ + ext);
 }
 
-PathUWP PathUWP::WithReplacedExtension(const std::string &oldExtension, const std::string &newExtension) const {
+PathUWP PathUWP::WithReplacedExtension(const std::string& oldExtension, const std::string& newExtension) const {
 	if (ends_with(path_, oldExtension)) {
 		std::string newPath = path_.substr(0, path_.size() - oldExtension.size());
 		return PathUWP(newPath + newExtension);
-	} else {
+	}
+	else {
 		return PathUWP(*this);
 	}
 }
 
-PathUWP PathUWP::WithReplacedExtension(const std::string &newExtension) const {
+PathUWP PathUWP::WithReplacedExtension(const std::string& newExtension) const {
 	if (path_.empty()) {
 		return PathUWP(*this);
 	}
@@ -103,7 +106,7 @@ std::string PathUWP::GetFilename() const {
 	return path_;
 }
 
-static std::string GetExtFromString(const std::string &str) {
+static std::string GetExtFromString(const std::string& str) {
 	size_t pos = str.rfind(".");
 	if (pos == std::string::npos) {
 		return "";
@@ -115,7 +118,7 @@ static std::string GetExtFromString(const std::string &str) {
 	}
 	std::string ext = str.substr(pos);
 	tolower(ext);
-	
+
 	return ext;
 }
 
@@ -140,10 +143,12 @@ std::string PathUWP::GetDirectory() const {
 			return "/";  // We're at the root.
 		}
 		return path_.substr(0, pos);
-	} else if (path_.size() == 2 && path_[1] == ':') {
+	}
+	else if (path_.size() == 2 && path_[1] == ':') {
 		// Windows fake-root.
 		return "/";
-	} else {
+	}
+	else {
 		// There could be a ':', too. Unlike the slash, let's include that
 		// in the returned directory.
 		size_t c_pos = path_.rfind(':');
@@ -155,16 +160,16 @@ std::string PathUWP::GetDirectory() const {
 	return path_;
 }
 
-bool PathUWP::FilePathContainsNoCase(const std::string &needle) const {
+bool PathUWP::FilePathContainsNoCase(const std::string& needle) const {
 	std::string haystack;
-	
+
 	haystack = path_;
 	auto pred = [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); };
 	auto found = std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end(), pred);
 	return found != haystack.end();
 }
 
-bool PathUWP::StartsWith(const PathUWP &other) const {
+bool PathUWP::StartsWith(const PathUWP& other) const {
 	if (type_ != other.type_) {
 		// Bad
 		return false;
@@ -172,7 +177,7 @@ bool PathUWP::StartsWith(const PathUWP &other) const {
 	return starts_with(path_, other.path_);
 }
 
-const std::string &PathUWP::ToString() const {
+const std::string& PathUWP::ToString() const {
 	return path_;
 }
 
@@ -189,7 +194,8 @@ std::wstring PathUWP::ToWString() const {
 std::string PathUWP::ToVisualString() const {
 	if (type_ == PathTypeUWP::NATIVE) {
 		return replace2(path_, "/", "\\");
-	} else {
+	}
+	else {
 		return path_;
 	}
 }
@@ -249,7 +255,7 @@ bool PathUWP::IsAbsolute() const {
 		return false;
 }
 
-bool PathUWP::ComputePathTo(const PathUWP &other, std::string &path) const {
+bool PathUWP::ComputePathTo(const PathUWP& other, std::string& path) const {
 	if (other == *this) {
 		path.clear();
 		return true;
@@ -269,7 +275,8 @@ bool PathUWP::ComputePathTo(const PathUWP &other, std::string &path) const {
 	if (path_ == "/") {
 		path = other.path_.substr(1);
 		return true;
-	} else {
+	}
+	else {
 		path = other.path_.substr(path_.size() + 1);
 		return true;
 	}

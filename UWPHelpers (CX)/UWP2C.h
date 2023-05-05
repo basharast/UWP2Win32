@@ -15,9 +15,9 @@
 extern "C" {
 #endif
 
-void* CreateFileUWP(const char* path, int accessMode, int shareMode, int openMode);
-int GetFileAttributesUWP(const void* name, void* lpFileInformation);
-int DeleteFileUWP(const void* name);
+	void* CreateFileUWP(const char* path, int accessMode, int shareMode, int openMode);
+	int GetFileAttributesUWP(const void* name, void* lpFileInformation);
+	int DeleteFileUWP(const void* name);
 
 #ifdef __cplusplus
 }

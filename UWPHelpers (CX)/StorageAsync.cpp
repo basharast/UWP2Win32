@@ -14,8 +14,8 @@ bool ActionPass(Windows::Foundation::IAsyncAction^ action)
 	return TaskHandler<bool>([&]() {
 		return concurrency::create_task(action).then([]() {
 			return true;
-			});
-		}, false);
+		});
+	}, false);
 }
 
 // Async action such as 'Delete' file

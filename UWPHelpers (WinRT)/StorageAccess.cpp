@@ -31,8 +31,8 @@ std::list<StorageItemW> FutureAccessItems;
 
 // Get value from app local settings
 winrt::hstring GetDataFromLocalSettings(winrt::hstring key) {
-	ApplicationDataContainer localSettings { ApplicationData::Current().LocalSettings()};
-	IPropertySet values { localSettings.Values()};
+	ApplicationDataContainer localSettings{ ApplicationData::Current().LocalSettings() };
+	IPropertySet values{ localSettings.Values() };
 	if (!key.empty()) {
 		auto tokenRetrive = values.Lookup(key);
 		if (tokenRetrive != nullptr) {
@@ -49,7 +49,7 @@ std::string GetDataFromLocalSettings(std::string key) {
 
 // Add or replace value in app local settings
 bool AddDataToLocalSettings(winrt::hstring key, winrt::hstring data, bool replace) {
-	ApplicationDataContainer localSettings{ ApplicationData::Current().LocalSettings()};
+	ApplicationDataContainer localSettings{ ApplicationData::Current().LocalSettings() };
 	IPropertySet values{ localSettings.Values() };
 
 	winrt::hstring testResult = GetDataFromLocalSettings(key);
@@ -67,7 +67,7 @@ bool AddDataToLocalSettings(winrt::hstring key, winrt::hstring data, bool replac
 }
 
 bool AddDataToLocalSettings(std::string key, std::string data, bool replace) {
-	return AddDataToLocalSettings(convert(key), convert(data),replace);
+	return AddDataToLocalSettings(convert(key), convert(data), replace);
 }
 
 // Add item to history list (FutureAccessItems)
@@ -79,7 +79,7 @@ void AddToAccessibleItems(IStorageItem item) {
 			break;
 		}
 	}
-	
+
 	if (!isFolderAddedBefore) {
 		FutureAccessItems.push_back(StorageItemW(item));
 	}

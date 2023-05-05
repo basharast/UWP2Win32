@@ -20,13 +20,13 @@ enum class PathTypeUWP {
 
 class PathUWP {
 private:
-	void Init(const std::string &str);
+	void Init(const std::string& str);
 
 public:
 	PathUWP() : type_(PathTypeUWP::UNDEFINED) {}
-	explicit PathUWP(const std::string &str);
+	explicit PathUWP(const std::string& str);
 
-	explicit PathUWP(const std::wstring &str);
+	explicit PathUWP(const std::wstring& str);
 
 	PathTypeUWP Type() const {
 		return type_;
@@ -46,29 +46,29 @@ public:
 	}
 
 	// WARNING: Potentially unsafe usage, if it's not NATIVE.
-	const char *c_str() const {
+	const char* c_str() const {
 		return path_.c_str();
 	}
 
 	bool IsAbsolute() const;
 
 	// Returns a path extended with a subdirectory.
-	PathUWP operator /(const std::string &subdir) const;
+	PathUWP operator /(const std::string& subdir) const;
 
 	// Navigates down into a subdir.
-	void operator /=(const std::string &subdir);
+	void operator /=(const std::string& subdir);
 
 	// File extension manipulation.
-	PathUWP WithExtraExtension(const std::string &ext) const;
-	PathUWP WithReplacedExtension(const std::string &oldExtension, const std::string &newExtension) const;
-	PathUWP WithReplacedExtension(const std::string &newExtension) const;
+	PathUWP WithExtraExtension(const std::string& ext) const;
+	PathUWP WithReplacedExtension(const std::string& oldExtension, const std::string& newExtension) const;
+	PathUWP WithReplacedExtension(const std::string& newExtension) const;
 
 	// Removes the last component.
 	std::string GetFilename() const;  // Really, GetLastComponent. Could be a file or directory. Includes the extension.
 	std::string GetFileExtension() const;  // Always lowercase return. Includes the dot.
 	std::string GetDirectory() const;
 
-	const std::string &ToString() const;
+	const std::string& ToString() const;
 
 	std::wstring ToWString() const;
 
@@ -82,23 +82,23 @@ public:
 	// For Android directory trees, navigates to the root of the tree.
 	PathUWP GetRootVolume() const;
 
-	bool ComputePathTo(const PathUWP&other, std::string &path) const;
+	bool ComputePathTo(const PathUWP& other, std::string& path) const;
 
-	bool operator ==(const PathUWP&other) const {
+	bool operator ==(const PathUWP& other) const {
 		return path_ == other.path_ && type_ == other.type_;
 	}
-	bool operator !=(const PathUWP&other) const {
+	bool operator !=(const PathUWP& other) const {
 		return path_ != other.path_ || type_ != other.type_;
 	}
 
-	bool FilePathContainsNoCase(const std::string &needle) const;
+	bool FilePathContainsNoCase(const std::string& needle) const;
 
-	bool StartsWith(const PathUWP&other) const;
+	bool StartsWith(const PathUWP& other) const;
 
-	bool operator <(const PathUWP&other) const {
+	bool operator <(const PathUWP& other) const {
 		return path_ < other.path_;
 	}
-	bool operator >(const PathUWP&other) const {
+	bool operator >(const PathUWP& other) const {
 		return path_ > other.path_;
 	}
 

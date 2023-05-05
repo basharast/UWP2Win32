@@ -66,7 +66,7 @@ public:
 	// Compare folder with std::string
 	bool Equal(std::string path) {
 		std::string folderPath = GetPath();
-		
+
 		// Fix slashs back from '/' to '\'
 		windowsPath(path);
 		return iequals(folderPath, path);
@@ -97,7 +97,7 @@ public:
 		bool state = false;
 		StorageFolder^ newFolder;
 		ExecuteTask(newFolder, storageFolder->CreateFolderAsync(convert(name), replaceExisting ? CreationCollisionOption::ReplaceExisting : CreationCollisionOption::GenerateUniqueName));
-		
+
 		if (newFolder != nullptr) {
 			state = true;
 		}
@@ -175,35 +175,35 @@ public:
 
 	// Get all files including files in sub folders (deep scan)
 	std::list<StorageFileW> GetAllFiles(bool useWindowsIndexer = false) {
-			std::list<StorageFileW> files; // No structure one-level list
+		std::list<StorageFileW> files; // No structure one-level list
 
-			UWP_VERBOSE_LOG(UWPSMT, "Getting all files for %s", GetPath().c_str());
-			IVectorView<StorageFile^>^ sFiles;
+		UWP_VERBOSE_LOG(UWPSMT, "Getting all files for %s", GetPath().c_str());
+		IVectorView<StorageFile^>^ sFiles;
 
-			// Set query options to create groups of files within result
-			QueryOptions^ queryOptions = ref new QueryOptions(CommonFolderQuery::DefaultQuery);
-			queryOptions->FolderDepth = FolderDepth::Deep; // Search in all levels
-			
-			// Windows indexer is very bad, it will return missing results if the files recently copied
-			// It's better to search without it, even if it will be slower
-			queryOptions->IndexerOption = useWindowsIndexer ? IndexerOption::UseIndexerWhenAvailable : IndexerOption::DoNotUseIndexer;
-			StorageFileQueryResult^ filesResult = storageFolder->CreateFileQueryWithOptions(queryOptions);
+		// Set query options to create groups of files within result
+		QueryOptions^ queryOptions = ref new QueryOptions(CommonFolderQuery::DefaultQuery);
+		queryOptions->FolderDepth = FolderDepth::Deep; // Search in all levels
 
-			// Windows search query is slow but it's the only solution (or we need to build safe recursive function)
-			// Regular 'StorageFolder->GetFilesAsync()' will not search in sub dirs
-			ExecuteTask(sFiles, filesResult->GetFilesAsync());
-			
-			if (sFiles != nullptr) {
-				for (auto it = 0; it != sFiles->Size; ++it) {
-					auto sItem = sFiles->GetAt(it);
-					if (sItem != nullptr) {
-						files.push_back(StorageFileW(sItem));
-					}
+		// Windows indexer is very bad, it will return missing results if the files recently copied
+		// It's better to search without it, even if it will be slower
+		queryOptions->IndexerOption = useWindowsIndexer ? IndexerOption::UseIndexerWhenAvailable : IndexerOption::DoNotUseIndexer;
+		StorageFileQueryResult^ filesResult = storageFolder->CreateFileQueryWithOptions(queryOptions);
+
+		// Windows search query is slow but it's the only solution (or we need to build safe recursive function)
+		// Regular 'StorageFolder->GetFilesAsync()' will not search in sub dirs
+		ExecuteTask(sFiles, filesResult->GetFilesAsync());
+
+		if (sFiles != nullptr) {
+			for (auto it = 0; it != sFiles->Size; ++it) {
+				auto sItem = sFiles->GetAt(it);
+				if (sItem != nullptr) {
+					files.push_back(StorageFileW(sItem));
 				}
 			}
-			delete sFiles;
-			
-			UWP_VERBOSE_LOG(UWPSMT, "Total files added (%d) in (%s)", files.size(), GetPath().c_str());
+		}
+		delete sFiles;
+
+		UWP_VERBOSE_LOG(UWPSMT, "Total files added (%d) in (%s)", files.size(), GetPath().c_str());
 
 		return files;
 	}
@@ -212,32 +212,32 @@ public:
 	std::list<StorageFolderW> GetAllFolders(bool useWindowsIndexer = false) {
 		std::list<StorageFolderW> folders;
 
-			IVectorView<StorageFolder^>^ sFolders;
-			UWP_VERBOSE_LOG(UWPSMT, "Getting all folders for %s", GetPath().c_str());
+		IVectorView<StorageFolder^>^ sFolders;
+		UWP_VERBOSE_LOG(UWPSMT, "Getting all folders for %s", GetPath().c_str());
 
-			// Set query options to create groups of files within result
-			QueryOptions^ queryOptions = ref new QueryOptions(CommonFolderQuery::DefaultQuery);
-			queryOptions->FolderDepth = FolderDepth::Deep; // Search in all levels
-			
-			// Windows indexer is very bad, it will return missing results if the files recently copied
-			// It's better to search without it, even if it will be slower
-			queryOptions->IndexerOption = useWindowsIndexer ? IndexerOption::UseIndexerWhenAvailable : IndexerOption::DoNotUseIndexer;
-			StorageFolderQueryResult^ foldersResult = storageFolder->CreateFolderQueryWithOptions(queryOptions);
+		// Set query options to create groups of files within result
+		QueryOptions^ queryOptions = ref new QueryOptions(CommonFolderQuery::DefaultQuery);
+		queryOptions->FolderDepth = FolderDepth::Deep; // Search in all levels
 
-			// Windows search query is slow but it's the only solution (or we need to build safe recursive function)
-			// Regular 'StorageFolder->GetFoldersAsync()' will not search in sub dirs
-			ExecuteTask(sFolders, foldersResult->GetFoldersAsync());
-			if (sFolders != nullptr) {
-				UWP_VERBOSE_LOG(UWPSMT, "Sub folders founded (%d) in (%s)", sFolders->Size, GetPath().c_str());
-				for (auto it = 0; it != sFolders->Size; ++it) {
-					auto sItem = sFolders->GetAt(it);
-					if (sItem != nullptr) {
-						folders.push_back(StorageFolderW(sItem));
-					}
+		// Windows indexer is very bad, it will return missing results if the files recently copied
+		// It's better to search without it, even if it will be slower
+		queryOptions->IndexerOption = useWindowsIndexer ? IndexerOption::UseIndexerWhenAvailable : IndexerOption::DoNotUseIndexer;
+		StorageFolderQueryResult^ foldersResult = storageFolder->CreateFolderQueryWithOptions(queryOptions);
+
+		// Windows search query is slow but it's the only solution (or we need to build safe recursive function)
+		// Regular 'StorageFolder->GetFoldersAsync()' will not search in sub dirs
+		ExecuteTask(sFolders, foldersResult->GetFoldersAsync());
+		if (sFolders != nullptr) {
+			UWP_VERBOSE_LOG(UWPSMT, "Sub folders founded (%d) in (%s)", sFolders->Size, GetPath().c_str());
+			for (auto it = 0; it != sFolders->Size; ++it) {
+				auto sItem = sFolders->GetAt(it);
+				if (sItem != nullptr) {
+					folders.push_back(StorageFolderW(sItem));
 				}
 			}
-			delete sFolders;
-			UWP_VERBOSE_LOG(UWPSMT, "Total folders added (%d) in (%s)", folders.size(), GetPath().c_str());
+		}
+		delete sFolders;
+		UWP_VERBOSE_LOG(UWPSMT, "Total folders added (%d) in (%s)", folders.size(), GetPath().c_str());
 
 		return folders;
 	}
@@ -298,20 +298,20 @@ public:
 
 	void BuildStructure(StorageFolder^& folder, std::string path, StorageFolder^ target) {
 		IStorageItem^ test = nullptr;
-        ExecuteTask(test, target->TryGetItemAsync(convert(path)));
-        if (test == nullptr) {
-           std::string folderName;
-           std::vector<std::string> locationParts = split(path, '\\');
-           for each (auto dir in locationParts) {
-              folderName.append(dir);
-              // Create folder
-              ExecuteTask(folder, target->CreateFolderAsync(convert(folderName), CreationCollisionOption::OpenIfExists));
-              folderName.append("\\");
-           }
-        }
-        else {
-           folder = (StorageFolder^)test;
-        }
+		ExecuteTask(test, target->TryGetItemAsync(convert(path)));
+		if (test == nullptr) {
+			std::string folderName;
+			std::vector<std::string> locationParts = split(path, '\\');
+			for each (auto dir in locationParts) {
+				folderName.append(dir);
+				// Create folder
+				ExecuteTask(folder, target->CreateFolderAsync(convert(folderName), CreationCollisionOption::OpenIfExists));
+				folderName.append("\\");
+			}
+		}
+		else {
+			folder = (StorageFolder^)test;
+		}
 	}
 
 	StorageFolder^ GetOrCreateFolder(PathUWP path) {
@@ -347,8 +347,8 @@ public:
 			// Copy files one by one to avoid 'access violation' issues with deep-level tasks
 			std::string rootName = convert(storageFolder->Name);
 			std::string rootPath = PathUWP(GetPath()).GetDirectory();
-            windowsPath(rootPath);
-			
+			windowsPath(rootPath);
+
 			if (destination != nullptr) {
 				for each (auto file in files) {
 					auto fItem = file.GetStorageFile();
@@ -358,9 +358,9 @@ public:
 					// Remove root path but keep the parent name
 					replace(targetLocation, rootPath, "");
 					replace(targetLocation, convert("\\" + fItem->Name), "");
-                    ltrim(targetLocation, "\\");
-                    rtrim(targetLocation, "\\");
-					
+					ltrim(targetLocation, "\\");
+					rtrim(targetLocation, "\\");
+
 					// Build folder structure
 					StorageFolder^ targetFolder;
 					BuildStructure(targetFolder, targetLocation, destination);
@@ -412,7 +412,7 @@ public:
 
 	// Get storage folder handle
 	HRESULT GetHandle(HANDLE* handle, int accessMode = GENERIC_READ, int shareMode = FILE_SHARE_READ) {
-		return GetFolderHandle(storageFolder, handle, GetAccessMode(accessMode),GetShareMode(shareMode));
+		return GetFolderHandle(storageFolder, handle, GetAccessMode(accessMode), GetShareMode(shareMode));
 	}
 
 	// Get storage folder handle
@@ -427,7 +427,7 @@ public:
 		auto fileMode = GetFileMode(mode);
 		bool createIfNotExists = fileMode->isCreate;
 		bool isAppend = fileMode->isAppend;
-		
+
 		StorageFile^ sfile;
 
 		if (createIfNotExists) {
@@ -444,7 +444,7 @@ public:
 		if (storageFile.IsValid()) {
 			file = storageFile.GetStream(mode);
 		}
-		
+
 		return file;
 	}
 
@@ -481,7 +481,7 @@ public:
 					CloseHandle(handle);
 				}
 			}
-			
+
 		}
 		return folderSize;
 	}
@@ -515,7 +515,7 @@ public:
 		return storageFolder;
 	}
 
-    time_t  filetime_to_timet(LARGE_INTEGER ull) const {
+	time_t  filetime_to_timet(LARGE_INTEGER ull) const {
 		return ull.QuadPart / 10000000ULL - 11644473600ULL;
 	}
 	ItemInfoUWP GetFolderInfo() {
@@ -524,7 +524,7 @@ public:
 		info.fullName = GetPath();
 		info.isDirectory = true;
 
-		
+
 		auto sProperties = GetProperties();
 
 		info.size = (uint64_t)GetSize();

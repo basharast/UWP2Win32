@@ -32,13 +32,13 @@ T TaskHandler(std::function<concurrency::task<T>()> wtask, T def)
 	bool done = false;
 	wtask().then([&](concurrency::task<T> t) {
 		try
-	    {
+	{
 		result = t.get();
-	    }
-	    catch (Platform::Exception^ exception_)
-	    {
-			UWP_ERROR_LOG(UWPSMT, convertToChar(exception_->Message));
-	    }
+	}
+	catch (Platform::Exception^ exception_)
+	{
+		UWP_ERROR_LOG(UWPSMT, convertToChar(exception_->Message));
+	}
 		done = true;
 	});
 

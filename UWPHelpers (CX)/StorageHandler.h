@@ -107,7 +107,7 @@ extern "C" {
 		virtual HRESULT STDMETHODCALLTYPE Create(
 			__RPC__in_string LPCWSTR fileName,
 			HANDLE_CREATION_OPTIONS creationOptions,
-		    HANDLE_ACCESS_OPTIONS accessOptions,
+			HANDLE_ACCESS_OPTIONS accessOptions,
 			HANDLE_SHARING_OPTIONS sharingOptions,
 			HANDLE_OPTIONS options,
 			__RPC__in_opt IOplockBreakingHandler * oplockBreakingHandler,

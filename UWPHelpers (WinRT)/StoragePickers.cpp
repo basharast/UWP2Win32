@@ -25,7 +25,7 @@ extern void AddItemToFutureList(IStorageItem folder);
 // Call folder picker (the selected folder will be added to future list)
 winrt::hstring PickSingleFolder()
 {
-	auto folderPicker{ Pickers::FolderPicker()  };
+	auto folderPicker{ Pickers::FolderPicker() };
 	folderPicker.SuggestedStartLocation(Pickers::PickerLocationId::Desktop);
 	folderPicker.FileTypeFilter().Append(L"*");
 
@@ -68,7 +68,7 @@ winrt::hstring PickSingleFile(std::vector<std::string> exts)
 
 
 std::string ChooseFile(std::vector<std::string> exts) {
-		return convert(PickSingleFile(exts));
+	return convert(PickSingleFile(exts));
 }
 
 std::string ChooseFolder() {

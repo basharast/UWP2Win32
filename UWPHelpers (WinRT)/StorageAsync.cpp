@@ -17,7 +17,7 @@ bool ActionPass(winrt::Windows::Foundation::IAsyncAction action)
 	}
 	catch (...) {
 		return false;
-	 }
+	}
 }
 
 // Async action such as 'Delete' file

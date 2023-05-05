@@ -35,8 +35,8 @@ HANDLE CreateFileUWP(std::string path, int accessMode = GENERIC_READ, int shareM
 HANDLE CreateFileUWP(std::wstring path, int accessMode = GENERIC_READ, int shareMode = FILE_SHARE_READ, int openMode = OPEN_EXISTING);
 FILE* GetFileStream(std::string path, const char* mode);
 // `GetFileStreamFromApp` Will use Windows UWP API, use it instead of fopen..etc
-FILE* GetFileStreamFromApp(std::string path, const char* mode); 
-bool IsValidUWP(std::string path);
+FILE* GetFileStreamFromApp(std::string path, const char* mode);
+bool IsValidUWP(std::string path, bool allowForAppData = false);
 bool IsValidUWP(std::wstring path);
 bool IsExistsUWP(std::string path);
 bool IsExistsUWP(std::wstring path);
@@ -75,7 +75,7 @@ bool IsContainsAccessibleItems(std::string path);
 bool IsRootForAccessibleItems(std::string path);
 // 'checkIfContainsFutureAccessItems' for listing purposes not real access, 'driveName' like C:
 bool CheckDriveAccess(std::string driveName, bool checkIfContainsFutureAccessItems);
-bool GetDriveFreeSpace(Path path, int64_t& space);
+bool GetDriveFreeSpace(PathUWP path, int64_t& space);
 
 // Log helpers
 std::string GetLogFile();

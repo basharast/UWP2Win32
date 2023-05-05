@@ -129,7 +129,7 @@ StorageItemW GetStorageItemParent(PathUWP path) {
 StorageItemW GetStorageItem(PathUWP path, bool createIfNotExists = false, bool forceFolderType = false) {
 	// Fill call will be ignored internally after the first call
 	FillLookupList();
-	
+
 	path = PathResolver(path);
 	StorageItemW item;
 
@@ -262,14 +262,14 @@ bool CreateIfNotExists(int openMode) {
 
 HANDLE CreateFileUWP(std::string path, int accessMode, int shareMode, int openMode) {
 	HANDLE handle = INVALID_HANDLE_VALUE;
- 
+
 	if (IsValidUWP(path)) {
 		bool createIfNotExists = CreateIfNotExists(openMode);
 		auto storageItem = GetStorageItem(path, createIfNotExists);
-		
+
 		if (storageItem.IsValid()) {
 			UWP_DEBUG_LOG(UWPSMT, "Getting handle (%s)", path.c_str());
-		 	HRESULT hr = storageItem.GetHandle(&handle, accessMode, shareMode);
+			HRESULT hr = storageItem.GetHandle(&handle, accessMode, shareMode);
 			if (hr == E_FAIL) {
 				handle = INVALID_HANDLE_VALUE;
 			}
@@ -277,9 +277,9 @@ HANDLE CreateFileUWP(std::string path, int accessMode, int shareMode, int openMo
 		else {
 			handle = INVALID_HANDLE_VALUE;
 			UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", path.c_str());
-		}	
+		}
 	}
-    return handle;
+	return handle;
 }
 
 HANDLE CreateFileUWP(std::wstring path, int accessMode, int shareMode, int openMode) {
@@ -291,38 +291,32 @@ std::map<std::string, bool> accessState;
 bool CheckDriveAccess(std::string driveName, bool checkIfContainsFutureAccessItems) {
 	bool state = false;
 
-	HANDLE searchResults;
-	WIN32_FIND_DATA findDataResult;
 	auto keyIter = accessState.find(driveName);
 	if (keyIter != accessState.end()) {
 		state = keyIter->second;
 	}
 	else {
 		try {
-#if !defined(_M_ARM)
-			wchar_t* filteredPath = _wcsdup(convert(driveName)->Data());
-			wcscat_s(filteredPath, sizeof(L"\\*.*"), L"\\*.*");
-			searchResults = FindFirstFileExFromAppW(
-				filteredPath, FindExInfoBasic, &findDataResult,
-				FindExSearchNameMatch, NULL, 0);
-			state = searchResults != NULL && searchResults != INVALID_HANDLE_VALUE;
-			if (state) {
-				FindClose(searchResults);
-			}
-#else
 			auto dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
 			auto dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
 			auto dwCreationDisposition = CREATE_ALWAYS;
 
 			auto testFile = std::string(driveName);
 			testFile.append("\\.UWPAccessCheck");
+#if defined(_M_ARM)
 			HANDLE h = CreateFile2(convertToLPCWSTR(testFile), dwDesiredAccess, dwShareMode, dwCreationDisposition, nullptr);
+#else
+			HANDLE h = CreateFile2FromAppW(convertToLPCWSTR(testFile), dwDesiredAccess, dwShareMode, dwCreationDisposition, nullptr);
+#endif
 			if (h != INVALID_HANDLE_VALUE) {
 				state = true;
 				CloseHandle(h);
+#if defined(_M_ARM)
 				DeleteFileW(convertToLPCWSTR(testFile));
-			}
+#else
+				DeleteFileFromAppW(convertToLPCWSTR(testFile));
 #endif
+			}
 			accessState.insert(std::make_pair(driveName, state));
 		}
 		catch (...) {
@@ -335,41 +329,41 @@ bool CheckDriveAccess(std::string driveName, bool checkIfContainsFutureAccessIte
 	}
 	return state;
 }
-bool IsValidUWP(std::string path) {
+bool IsValidUWP(std::string path, bool allowForAppData) {
 	auto p = PathResolver(path);
 
 	//Check valid path
 	if (p.Type() == PathTypeUWP::UNDEFINED || !p.IsAbsolute()) {
 		// Nothing to do here
-		VERBOSE_LOG(FILESYS, "File is not valid (%s)", p.ToString().c_str());
+		UWP_VERBOSE_LOG(UWPSMT, "File is not valid (%s)", p.ToString().c_str());
 		return false;
 	}
 
 
 	bool state = false;
+	if (!allowForAppData) {
+		auto resolvedPathStr = p.ToString();
+		if (ends_with(resolvedPathStr, "LocalState") || ends_with(resolvedPathStr, "TempState") || ends_with(resolvedPathStr, "LocalCache")) {
+			state = true;
+		}
+		else
+			if (isChild(GetLocalFolder(), resolvedPathStr)) {
+				state = true;
+			}
+			else if (isChild(GetInstallationFolder(), resolvedPathStr)) {
+				state = true;
+			}
+			else if (isChild(GetTempFolder(), resolvedPathStr)) {
+				state = true;
+			}
 
-	auto resolvedPathStr = p.ToString();
-	if (ends_with(resolvedPathStr, "LocalState") || ends_with(resolvedPathStr, "TempState") || ends_with(resolvedPathStr, "LocalCache")) {
-		state = true;
+		if (!state)
+		{
+			auto p = PathUWP(path);
+			std::string driveName = p.GetRootVolume().ToString();
+			state = CheckDriveAccess(driveName, false);
+		}
 	}
-	else
-		if (isChild(GetLocalFolder(), resolvedPathStr)) {
-			state = true;
-		}
-		else if (isChild(GetInstallationFolder(), resolvedPathStr)) {
-			state = true;
-		}
-		else if (isChild(GetTempFolder(), resolvedPathStr)) {
-			state = true;
-		}
-
-	if (!state)
-	{
-		auto p = PathUWP(path);
-		std::string driveName = p.GetRootVolume().ToString();
-		state = CheckDriveAccess(driveName, false);
-	}
-
 	return !state;
 }
 
@@ -568,10 +562,10 @@ ItemInfoUWP GetItemInfoUWP(std::string path) {
 			info = storageItem.GetItemInfo();
 		}
 		else {
-			ERROR_LOG(FILESYS, "Couldn't find or access (%s)", path.c_str());
+			ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", path.c_str());
 		}
 	}
-	
+
 	return info;
 }
 
@@ -618,7 +612,7 @@ bool DeleteUWP(std::string path) {
 bool DeleteUWP(std::wstring path) {
 	return DeleteUWP(convert(path));
 }
-  
+
 bool CreateDirectoryUWP(std::string path, bool replaceExisting) {
 	bool state = false;
 	auto p = PathUWP(path);
@@ -635,7 +629,7 @@ bool CreateDirectoryUWP(std::string path, bool replaceExisting) {
 			UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", rootPath.c_str());
 		}
 	}
-	
+
 	return state;
 }
 
@@ -646,7 +640,7 @@ bool CreateDirectoryUWP(std::wstring path, bool replaceExisting) {
 bool CopyUWP(std::string path, std::string dest) {
 	bool state = false;
 
-	if (IsValidUWP(path) && IsValidUWP(dest)) {
+	if (IsValidUWP(path, true) && IsValidUWP(dest, true)) {
 		auto srcStorageItem = GetStorageItem(path);
 		if (srcStorageItem.IsValid()) {
 			auto destDir = dest;
@@ -679,9 +673,9 @@ bool CopyUWP(std::wstring path, std::wstring dest) {
 bool MoveUWP(std::string path, std::string dest) {
 	bool state = false;
 
-	if (IsValidUWP(path) && IsValidUWP(dest)) {
+	if (IsValidUWP(path, true) && IsValidUWP(dest, true)) {
 		auto srcStorageItem = GetStorageItem(path);
-		
+
 		if (srcStorageItem.IsValid()) {
 			auto destDir = dest;
 			auto srcName = srcStorageItem.GetName();
@@ -712,7 +706,7 @@ bool MoveUWP(std::wstring path, std::wstring dest) {
 
 bool RenameUWP(std::string path, std::string name) {
 	bool state = false;
-	
+
 	auto srcRoot = PathUWP(path).GetDirectory();
 	auto dstRoot = PathUWP(name).GetDirectory();
 	// Check if system using rename to move
@@ -787,7 +781,7 @@ bool OpenFolder(std::wstring path) {
 	return OpenFolder(convert(path));
 }
 
-bool GetDriveFreeSpace(Path path, int64_t& space) {
+bool GetDriveFreeSpace(PathUWP path, int64_t& space) {
 
 	bool state = false;
 	Platform::String^ wString = ref new Platform::String(path.ToWString().c_str());

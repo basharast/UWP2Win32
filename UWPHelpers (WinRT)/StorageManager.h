@@ -34,7 +34,7 @@ bool isLocalState(std::string path);
 HANDLE CreateFileUWP(std::string path, long accessMode = 0x80000000L, long shareMode = 0x00000001, long openMode = 3);
 HANDLE CreateFileUWP(std::wstring path, long accessMode = 0x80000000L, long shareMode = 0x00000001, long openMode = 3);
 FILE* GetFileStream(std::string path, const char* mode);
-bool IsValidUWP(std::string path);
+bool IsValidUWP(std::string path, bool allowForAppData = false);
 bool IsExistsUWP(std::string path);
 bool IsExistsUWP(std::wstring path);
 bool IsDirectoryUWP(std::string path);
@@ -64,7 +64,7 @@ bool IsContainsAccessibleItems(std::string path);
 bool IsRootForAccessibleItems(std::string path);
 // 'checkIfContainsFutureAccessItems' for listing purposes not real access, 'driveName' like C:
 bool CheckDriveAccess(std::string driveName, bool checkIfContainsFutureAccessItems);
-bool GetDriveFreeSpace(Path path, int64_t& space);
+bool GetDriveFreeSpace(PathUWP path, int64_t& space);
 
 // Log helpers
 std::string GetLogFile();

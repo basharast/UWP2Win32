@@ -173,7 +173,7 @@ public:
 	bool Equal(PathUWP path) {
 		return Equal(path.ToString());
 	}
-	
+
 	// Compare item with StorageItem
 	bool Equal(IStorageItem^ item) {
 		return Equal(item->Path);
@@ -195,7 +195,7 @@ public:
 	// Get item handle
 	HRESULT GetHandle(HANDLE* handle, int accessMode = GENERIC_READ, int shareMode = FILE_SHARE_READ) {
 		HRESULT hr = E_FAIL;
-		if(IsDirectory()){
+		if (IsDirectory()) {
 			hr = GetFolderHandle(storageFolderW.GetStorageFolder(), handle, GetAccessMode(accessMode), GetShareMode(shareMode));
 		}
 		else {
@@ -290,7 +290,7 @@ public:
 	StorageFolderW GetStorageFolderW() {
 		return storageFolderW;
 	}
-	
+
 	// Get Wrapped StorageFolder
 	StorageFolder^ GetStorageFolder() {
 		return storageFolderW.GetStorageFolder();

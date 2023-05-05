@@ -27,95 +27,95 @@ using namespace winrt::Windows::UI::Core;
 
 namespace winrt
 {
-  using namespace Windows::Foundation;
+	using namespace Windows::Foundation;
 }
 
 inline void WaitTask(const winrt::IAsyncAction& asyncOp)
 {
-  if (asyncOp.Status() == winrt::AsyncStatus::Completed)
-    return;
+	if (asyncOp.Status() == winrt::AsyncStatus::Completed)
+		return;
 
-  if (!winrt::impl::is_sta())
-    return asyncOp.get();
+	if (!winrt::impl::is_sta())
+		return asyncOp.get();
 
-  auto __sync = std::make_shared<Concurrency::event>();
-  asyncOp.Completed([&](auto&&, auto&&) {
-    __sync->set();
-  });
-  __sync->wait();
+	auto __sync = std::make_shared<Concurrency::event>();
+	asyncOp.Completed([&](auto&&, auto&&) {
+		__sync->set();
+	});
+	__sync->wait();
 }
 
 template <typename TResult, typename TProgress> inline
 TResult WaitTask(const winrt::IAsyncOperationWithProgress<TResult, TProgress>& asyncOp)
 {
-  if (asyncOp.Status() == winrt::AsyncStatus::Completed)
-    return asyncOp.GetResults();
+	if (asyncOp.Status() == winrt::AsyncStatus::Completed)
+		return asyncOp.GetResults();
 
-  if (!winrt::impl::is_sta())
-    return asyncOp.get();
+	if (!winrt::impl::is_sta())
+		return asyncOp.get();
 
-  auto __sync = std::make_shared<Concurrency::event>();
-  asyncOp.Completed([&](auto&&, auto&&) {
-    __sync->set();
-  });
-  __sync->wait();
+	auto __sync = std::make_shared<Concurrency::event>();
+	asyncOp.Completed([&](auto&&, auto&&) {
+		__sync->set();
+	});
+	__sync->wait();
 
-  return asyncOp.GetResults();
+	return asyncOp.GetResults();
 }
 
 template <typename TResult> inline
 TResult WaitTask(const winrt::IAsyncOperation<TResult>& asyncOp)
 {
-  if (asyncOp.Status() == winrt::AsyncStatus::Completed)
-    return asyncOp.GetResults();
+	if (asyncOp.Status() == winrt::AsyncStatus::Completed)
+		return asyncOp.GetResults();
 
-  if (!winrt::impl::is_sta())
-    return asyncOp.get();
+	if (!winrt::impl::is_sta())
+		return asyncOp.get();
 
-  auto __sync = std::make_shared<Concurrency::event>();
-  asyncOp.Completed([&](auto&&, auto&&)
-  {
-    __sync->set();
-  });
-  __sync->wait();
+	auto __sync = std::make_shared<Concurrency::event>();
+	asyncOp.Completed([&](auto&&, auto&&)
+		{
+			__sync->set();
+		});
+	__sync->wait();
 
-  return asyncOp.GetResults();
+	return asyncOp.GetResults();
 }
 
 template <typename TResult> inline
 TResult WaitTask(const Concurrency::task<TResult>& asyncOp)
 {
-  if (asyncOp.is_done())
-    return asyncOp.get();
+	if (asyncOp.is_done())
+		return asyncOp.get();
 
-  if (!winrt::impl::is_sta()) // blocking suspend is allowed
-    return asyncOp.get();
+	if (!winrt::impl::is_sta()) // blocking suspend is allowed
+		return asyncOp.get();
 
-  auto _sync = std::make_shared<Concurrency::event>();
-  asyncOp.then([&](TResult result)
-  {
-    _sync->set();
-  });
-  _sync->wait();
+	auto _sync = std::make_shared<Concurrency::event>();
+	asyncOp.then([&](TResult result)
+		{
+			_sync->set();
+		});
+	_sync->wait();
 
-  return asyncOp.get();
+	return asyncOp.get();
 }
 
 template<typename T>
 T TaskPass(winrt::Windows::Foundation::IAsyncOperation<T> task, T def)
 {
-    try {
-        return WaitTask(task);
-    }
-    catch (...) {
-        return def;
-    }
+	try {
+		return WaitTask(task);
+	}
+	catch (...) {
+		return def;
+	}
 }
 
 template<typename T>
 T TaskPass(winrt::Windows::Foundation::IAsyncOperation<T> task)
 {
-    return WaitTask(task);
+	return WaitTask(task);
 }
 
 
