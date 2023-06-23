@@ -56,8 +56,6 @@ Your code will `#include` in general:
 
 The usage simplified to be similar to Win32 functions.
 
-Each `.cpp`, `.h` file will contain list of functions at the top to make easier to get what you want.
-
 
 # Usage
 
