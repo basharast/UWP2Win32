@@ -170,7 +170,9 @@ public:
 	FILE* GetStream(const char* mode) {
 		HANDLE handle;
 		auto fileMode = GetFileMode(mode);
-
+		if (fileMode && !fileMode->isAppend && fileMode->isCreate) {
+			ExecuteTask(Windows::Storage::FileIO::WriteTextAsync(storageFile, L""));
+		}
 		HRESULT hr = GetHandle(&handle, fileMode->dwDesiredAccess, fileMode->dwShareMode);
 		FILE* file{};
 		if (hr == S_OK && handle != INVALID_HANDLE_VALUE) {
