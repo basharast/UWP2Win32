@@ -1,11 +1,8 @@
 // UWP STORAGE MANAGER
-// Copyright (c) 2023 Bashar Astifan.
+// Copyright (c) 2023-2024 Bashar Astifan.
 // Email: bashar@astifan.online
 // Telegram: @basharastifan
 // GitHub: https://github.com/basharast/UWP2Win32
-
-// This code must keep support for lower builds (15063+)
-// Try always to find possible way to keep that support
 
 #include "StorageConfig.h"
 #include "StorageLog.h"
@@ -14,13 +11,17 @@
 #include "StorageAccess.h"
 #include "StorageItemW.h"
 
-#include <winrt/Windows.Storage.h>
-#include <winrt/Windows.Foundation.h>
-#include <winrt/Windows.ApplicationModel.h>
+#include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.Foundation.Metadata.h>
 #include <winrt/Windows.Storage.AccessCache.h>
+#include <winrt/Windows.Storage.FileProperties.h>
+#include <winrt/Windows.Storage.Pickers.h>
+#include <winrt/Windows.Storage.Search.h>
+#include <winrt/Windows.Storage.h>
+#include <winrt/Windows.ApplicationModel.h>
+#include <winrt/Windows.UI.Core.h>
 
 using namespace winrt::Windows::Storage;
-using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Foundation::Collections;
 using namespace winrt::Windows::Storage::AccessCache;
 using namespace winrt::Windows::ApplicationModel;
@@ -36,7 +37,7 @@ winrt::hstring GetDataFromLocalSettings(winrt::hstring key) {
 	if (!key.empty()) {
 		auto tokenRetrive = values.Lookup(key);
 		if (tokenRetrive != nullptr) {
-			winrt::hstring ConvertedToken = tokenRetrive.as<IPropertyValue>().GetString();
+			winrt::hstring ConvertedToken = tokenRetrive.as<winrt::Windows::Foundation::IPropertyValue>().GetString();
 			return ConvertedToken;
 		}
 	}
@@ -54,12 +55,12 @@ bool AddDataToLocalSettings(winrt::hstring key, winrt::hstring data, bool replac
 
 	winrt::hstring testResult = GetDataFromLocalSettings(key);
 	if (testResult.empty()) {
-		values.Insert(key, PropertyValue::CreateString(data));
+		values.Insert(key, winrt::Windows::Foundation::PropertyValue::CreateString(data));
 		return true;
 	}
 	else if (replace) {
 		values.Remove(key);
-		values.Insert(key, PropertyValue::CreateString(data));
+		values.Insert(key, winrt::Windows::Foundation::PropertyValue::CreateString(data));
 		return true;
 	}
 

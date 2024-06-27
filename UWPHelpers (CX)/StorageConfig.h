@@ -20,6 +20,8 @@
 #define APPEND_MUSIC_LOCATION 0 // (requires musicLibrary' capability)
 #define APPEND_PICTURES_LOCATION 0 // (requires 'picturesLibrary' capability)
 
+// To force legacy APIs, define `UWP_LEGACY` (using header or project settings which is better)
+//#define UWP_LEGACY 1
 
 // Working folder
 // set this value by calling `SetWorkingFolder` from `StorageManager.h`

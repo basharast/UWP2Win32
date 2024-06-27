@@ -18,7 +18,6 @@ extern "C" {
 #endif
 	void* CreateFileUWP(const char* path, int accessMode, int shareMode, int openMode) {
 		std::string fn = convert(path);
-
 		return (void*)CreateFileUWP(fn, accessMode, shareMode, openMode);
 	}
 

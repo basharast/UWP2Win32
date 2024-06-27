@@ -6,10 +6,13 @@
 
 #pragma once
 
+#include <windows.h>
+
 #include <cstdint>
 #include <string>
 #include <vector>
 #include <list>
+#include <algorithm>
 
 typedef struct {
 	DWORD dwDesiredAccess;

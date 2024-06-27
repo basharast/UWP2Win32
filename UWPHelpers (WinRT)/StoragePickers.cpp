@@ -1,24 +1,24 @@
 // UWP STORAGE MANAGER
-// Copyright (c) 2023 Bashar Astifan.
+// Copyright (c) 2023-2024 Bashar Astifan.
 // Email: bashar@astifan.online
 // Telegram: @basharastifan
-
-// This code must keep support for lower builds (15063+)
-// Try always to find possible way to keep that support
-
-#include "pch.h"
 
 #include "StorageLog.h"
 #include "StorageExtensions.h"
 #include "StorageAsync.h"
 #include "StorageAccess.h"
+#include "StoragePickers.h"
 
-#include <winrt/Windows.Storage.h>
+#include <winrt/Windows.Foundation.Metadata.h>
+#include <winrt/Windows.Storage.AccessCache.h>
+#include <winrt/Windows.Storage.FileProperties.h>
 #include <winrt/Windows.Storage.Pickers.h>
+#include <winrt/Windows.Storage.Search.h>
+#include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
 
 using namespace winrt::Windows::Storage;
-using namespace winrt::Windows::Foundation;
 
 extern void AddItemToFutureList(IStorageItem folder);
 

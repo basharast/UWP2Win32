@@ -1,5 +1,5 @@
 // UWP STORAGE MANAGER
-// Copyright (c) 2023 Bashar Astifan.
+// Copyright (c) 2023-2024 Bashar Astifan.
 // Email: bashar@astifan.online
 // Telegram: @basharastifan
 // GitHub: https://github.com/basharast/UWP2Win32
@@ -23,8 +23,6 @@ typedef struct {
 	bool isAppend;
 	bool isCreate;
 } FILE_OPEN_UWP_MODE;
-
-using namespace winrt;
 
 bool replace(std::string& str, const std::string& from, const std::string& to);
 std::string replace2(const std::string str, const std::string& from, const std::string& to);

@@ -1,5 +1,5 @@
 // UWP STORAGE MANAGER
-// Copyright (c) 2023 Bashar Astifan.
+// Copyright (c) 2023-2024 Bashar Astifan.
 // Email: bashar@astifan.online
 // Telegram: @basharastifan
 // GitHub: https://github.com/basharast/UWP2Win32
@@ -8,19 +8,27 @@
 
 #pragma once
 
-#include "pch.h"
 #include <ppl.h>
 #include <ppltasks.h>
 #include <wrl.h>
 #include <wrl/implements.h>
 
+#include <WinRTBase.h>
+#include <winrt/Windows.ApplicationModel.h>
+#include <winrt/Windows.ApplicationModel.Core.h>
+#include <winrt/Windows.ApplicationModel.Activation.h>
+#include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Graphics.Display.h>
+#include <winrt/Windows.System.h>
+#include <winrt/Windows.System.Threading.h>
+#include <winrt/Windows.UI.Core.h>
+#include <winrt/Windows.UI.Input.h>
+#include <winrt/Windows.UI.ViewManagement.h>
+
 #include "StorageLog.h"
 #include "StorageExtensions.h"
 
 using namespace winrt::Windows::UI::Core;
-
-// Don't add 'using' 'Windows::Foundation'
-// it might cause confilct with some types like 'Point'
 
 #pragma region Async Handlers
 
@@ -35,7 +43,7 @@ inline void WaitTask(const winrt::IAsyncAction& asyncOp)
 	if (asyncOp.Status() == winrt::AsyncStatus::Completed)
 		return;
 
-	if (!winrt::impl::is_sta())
+	if (!winrt::impl::is_sta_thread())
 		return asyncOp.get();
 
 	auto __sync = std::make_shared<Concurrency::event>();
@@ -51,7 +59,7 @@ TResult WaitTask(const winrt::IAsyncOperationWithProgress<TResult, TProgress>& a
 	if (asyncOp.Status() == winrt::AsyncStatus::Completed)
 		return asyncOp.GetResults();
 
-	if (!winrt::impl::is_sta())
+	if (!winrt::impl::is_sta_thread())
 		return asyncOp.get();
 
 	auto __sync = std::make_shared<Concurrency::event>();
@@ -69,7 +77,7 @@ TResult WaitTask(const winrt::IAsyncOperation<TResult>& asyncOp)
 	if (asyncOp.Status() == winrt::AsyncStatus::Completed)
 		return asyncOp.GetResults();
 
-	if (!winrt::impl::is_sta())
+	if (!winrt::impl::is_sta_thread())
 		return asyncOp.get();
 
 	auto __sync = std::make_shared<Concurrency::event>();
@@ -88,7 +96,7 @@ TResult WaitTask(const Concurrency::task<TResult>& asyncOp)
 	if (asyncOp.is_done())
 		return asyncOp.get();
 
-	if (!winrt::impl::is_sta()) // blocking suspend is allowed
+	if (!winrt::impl::is_sta_thread()) // blocking suspend is allowed
 		return asyncOp.get();
 
 	auto _sync = std::make_shared<Concurrency::event>();

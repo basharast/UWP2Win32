@@ -1,5 +1,5 @@
 // UWP STORAGE MANAGER
-// Copyright (c) 2023 Bashar Astifan.
+// Copyright (c) 2023-2024 Bashar Astifan.
 // Email: bashar@astifan.online
 // Telegram: @basharastifan
 
@@ -12,8 +12,6 @@
 
 #include <winrt/base.h>
 #include <winrt/Windows.Storage.h>
-
-using namespace winrt;
 
 #pragma region WindowsStorageCOM
 // These APIs have been accidentally placed inside the WINAPI_PARTITION_DESKTOP partition

@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>50ddbd34-2bcf-40e3-b0fe-a39090800249</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>09317fd7-d07a-46ae-b29e-1fe5699866de</UniqueIdentifier>
+      <Extensions>bmp;fbx;gif;jpg;jpeg;tga;tiff;tif;png</Extensions>
+    </Filter>
+    <Filter Include="Content">
+      <UniqueIdentifier>5d97f10d-c843-47fd-b505-8d9e93997f83</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="Common\DirectXHelper.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\StepTimer.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\DeviceResources.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClCompile Include="Common\DeviceResources.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClInclude Include="Content\Sample3DSceneRenderer.h">
+      <Filter>Content</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\SampleFpsTextRenderer.h">
+      <Filter>Content</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\ShaderStructures.h">
+      <Filter>Content</Filter>
+    </ClInclude>
+    <ClCompile Include="Content\Sample3DSceneRenderer.cpp">
+      <Filter>Content</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\SampleFpsTextRenderer.cpp">
+      <Filter>Content</Filter>
+    </ClCompile>
+    <FxCompile Include="Content\SamplePixelShader.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\SampleVertexShader.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
+    <Image Include="Assets\LockScreenLogo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\SplashScreen.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square150x150Logo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Wide310x150Logo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Filter Include="Source">
+      <UniqueIdentifier>{95f06108-0bcb-48f7-b4b4-00f33ecf7fb5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="App.cpp" />
+    <ClCompile Include="UWPHelpersCXMain.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="..\StorageAccess.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StorageAsync.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StorageExtensions.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StorageHandler.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StorageManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StoragePath.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StoragePickers.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\UIHelpers.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\UWP2C.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="App.h" />
+    <ClInclude Include="UWPHelpersCXMain.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="..\StorageAccess.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageAsync.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageConfig.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageExtensions.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageFileW.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageFolderW.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageHandler.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageInfo.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageItemW.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageLog.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageManager.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StoragePath.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StoragePickers.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UIHelpers.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UWP2C.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\StoreLogo.png">
+      <Filter>Assets</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+</Project>

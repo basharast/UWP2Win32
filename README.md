@@ -5,10 +5,54 @@ using only string path and not to aware about UWP side.
 - **CX:** tested
 - **WinRT:** partially tested please report any issue.
 
-## When to use this?
+# Overview
 
-Only if you want to keep the legacy support, otherwise MS has new solutions for that.
+There was big confusion since the new UWP APIs made such as `CreateFile2FromApp`
 
+those were not able to deal with the future access list correctly in early builds 17134
+
+even on Windows 10 they had many internal bugs, after build 22000 a lot of things got corrected
+
+so on the recent builds on Windows once the folder/file is added to the future access list then:
+
+## API direct access
+
+it will be allowed for direct access using the API that made for UWP (those ends with `FromApp`)
+this is allowed even without `FileSystem` enabled.
+
+## Get StorageFile with full path
+
+also functions such as `StorageFolder::GetFolderFromPathAsync` allowed to get files from outside local data
+as long the target in the future access list
+
+not to mention that by default APIs can be used in case:
+
+- Accessing to AppData
+- Accessing to AppFolder
+- Accessing to USB (if capability added)
+
+## Advanced
+
+This will not be included in this project yet
+
+but you can always resolve any DLL API to forward the request to your UWP replacement
+
+you can check the nice idea made by Team Kodi at [this file](https://github.com/xbmc/xbmc/blob/8a90f175f53fa3f86415e6a376aed54d244cad0e/xbmc/cores/DllLoader/Win32DllLoader.cpp)
+
+with this solution you can increase the app compatibility with UWP environment
+
+
+# Usage & Structure
+
+## Version 1.5
+
+- Added check using API before UWP
+- Added Get/Put file contents
+- Implemented files into projects
+- License changed to MIT
+- Fix many build errors (WinRT)
+- Fixed minor issues
+- Added wstring version for functions
 
 ## Capabilities
 
@@ -50,8 +94,39 @@ Your code will `#include` in general:
 
 The usage simplified to be similar to Win32 functions.
 
+## Note 
+
+Because I'm always aware for legacy support, some parts can be skipped
+
+for recent Windows builds the call will mostly finished at UWP API level, 
+
+rarely will use wrapped StorageItem or others.
+
+in case you went into unneccesary delay, modify the code and disable the wrapped StorageItem fallback if you sure it's not needed
+
+```cpp
+// Example what fallback means
+bool IsExistsUWP(std::string path) {
+	bool defaultState = IsExistsAPI(path); // <-- Usually this succeed
+	if (!defaultState && IsValidUWP(path)) {
+		// ... Here the fallback ...
+	}
+
+	return false;
+}
+```
+
 
 # Usage
+
+## Tips
+
+- To force legacy APIs define `UWP_LEGACY`
+- By default legacy forced for ARM32 only
+- Turn off precompiled header from your project
+- Add preprocessors `_CRT_SECURE_NO_WARNINGS` and `NOMINMAX`
+- For best results make things centralized in custom folder picked by the user, it's better in case the app removed and installed again
+
 
 ## Lookup lists
 
@@ -363,20 +438,6 @@ Usually `LOGS` folder will be created in `WorkingFolder`
 
 and inside it will be new file for each launch at the time `GetLogFile()` called
 
-
-# Tips
-
-It's preferred to use file APIs first,
-
-then forward the request to storage manager if APIs failed
-
-the reason is: file APIs may work in many cases such as:
-
-- Accessing to AppData
-- Accessing to AppFolder
-- Accessing to USB (if capability added)
-
-and it will provide a bit faster performance in terms of fetching results
 
 # Important
 

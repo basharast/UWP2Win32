@@ -1,15 +1,11 @@
 // UWP STORAGE MANAGER
-// Copyright (c) 2023 Bashar Astifan.
+// Copyright (c) 2023-2024 Bashar Astifan.
 // Email: bashar@astifan.online
 // Telegram: @basharastifan
 // GitHub: https://github.com/basharast/UWP2Win32
 
-// This code must keep support for lower builds (15063+)
-// Try always to find possible way to keep that support
-
 #pragma once 
 
-#include "pch.h"
 #include <io.h>
 #include <fcntl.h>
 
@@ -25,7 +21,6 @@
 #include <winrt/Windows.Foundation.h>
 
 using namespace winrt::Windows::Storage;
-using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Storage::FileProperties;
 
 class StorageItemW {
@@ -46,12 +41,14 @@ public:
 			}
 		}
 	}
-	StorageItemW(StorageFolderW folder) {
-		StorageItemW((IStorageItem)folder.GetStorageFolder());
-	}
-	StorageItemW(StorageFileW file) {
-		StorageItemW((IStorageItem)file.GetStorageFile());
-	}
+	// Delegate constructor for StorageFolderW
+	StorageItemW(StorageFolderW folder)
+		: StorageItemW(static_cast<IStorageItem>(folder.GetStorageFolder())) { }
+
+	// Delegate constructor for StorageFileW
+	StorageItemW(StorageFileW file)
+		: StorageItemW(static_cast<IStorageItem>(file.GetStorageFile())) { }
+
 	~StorageItemW() {
 	}
 

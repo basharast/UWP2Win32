@@ -1,15 +1,10 @@
 // UWP STORAGE MANAGER
-// Copyright (c) 2023 Bashar Astifan.
+// Copyright (c) 2023-2024 Bashar Astifan.
 // Email: bashar@astifan.online
 // Telegram: @basharastifan
 // GitHub: https://github.com/basharast/UWP2Win32
 
-// This code must keep support for lower builds (15063+)
-// Try always to find possible way to keep that support
-
 #pragma once 
-
-#include "pch.h"
 
 #include "StorageLog.h"
 #include "StoragePath.h"
@@ -19,13 +14,15 @@
 #include "StorageFileW.h"
 #include "StorageInfo.h"
 
-#include <winrt/Windows.Storage.h>
-#include <winrt/Windows.Storage.Search.h>
+#include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.Foundation.Metadata.h>
+#include <winrt/Windows.Storage.AccessCache.h>
 #include <winrt/Windows.Storage.FileProperties.h>
-#include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Storage.Pickers.h>
+#include <winrt/Windows.Storage.Search.h>
+#include <winrt/Windows.Storage.h>
 
 using namespace winrt::Windows::Storage;
-using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Foundation::Collections;
 using namespace winrt::Windows::Storage::FileProperties;
 using namespace winrt::Windows::Storage::Search;
@@ -250,6 +247,7 @@ public:
 		// Do some fixes because 'TryGetItemAsync' is very sensetive 
 		replace(itemName, "\\\\", "\\");
 		replace(itemName, "//", "/");
+		replace(itemName, "*", "");
 		rtrim(itemName, ":"); // remove ':' at the end of the path (if any)
 
 		path = PathUWP(itemName);

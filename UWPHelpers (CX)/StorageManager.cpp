@@ -19,13 +19,50 @@
 #include "StorageItemW.h"
 #include "StorageLog.h"
 
+#include <vector>
+#include <stdio.h>
+#include <windows.h>
+#include <strsafe.h>
+#include <shlwapi.h>
+#include <iostream>
+#include <wincrypt.h>
+#include <filesystem>
+#include <fstream>
+#include <regex>
+#include <string>
+#include <map>
+#include <set>
 
-using namespace Platform;
 using namespace Windows::Storage;
-using namespace Windows::Foundation;
+using namespace Windows::Storage::Pickers;
 using namespace Windows::ApplicationModel;
+using namespace Windows::System;
+using namespace Windows::Storage::Streams;
+using namespace Windows::Security::Cryptography;
 
 extern std::list<StorageItemW> FutureAccessItems;
+
+// Simply define `UWP_LEGACY` to force legacy APIs
+#if _M_ARM || defined(UWP_LEGACY)
+#define TARGET_IS_16299_OR_LOWER
+#endif
+
+std::string GetLastErrorAsString() {
+	DWORD errorMessageID = ::GetLastError();
+	if (errorMessageID == 0) {
+		return "Unknown";
+	}
+
+	LPSTR messageBuffer = nullptr;
+	size_t size = FormatMessageA( // Use FormatMessageA for ANSI
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+	std::string message(messageBuffer, size - 2); // -2 to strip \r\n appended at the end
+	LocalFree(messageBuffer); // Free the buffer allocated by FormatMessage
+
+	return message;
+}
 
 #pragma region Locations
 std::string GetWorkingFolder() {
@@ -38,6 +75,9 @@ std::string GetWorkingFolder() {
 }
 void SetWorkingFolder(std::string location) {
 	AppWorkingFolder = location;
+}
+void SetWorkingFolder(std::wstring location) {
+	SetWorkingFolder(convert(location));
 }
 std::string GetInstallationFolder() {
 	return convert(Package::Current->InstalledLocation->Path);
@@ -60,6 +100,9 @@ std::string GetTempFile(std::string name) {
 	else {
 		return "";
 	}
+}
+std::string GetTempFile(std::wstring name) {
+	return GetTempFile(convert(name));
 }
 std::string GetPicturesFolder() {
 	// Requires 'picturesLibrary' capability
@@ -87,6 +130,9 @@ std::string GetPreviewPath(std::string path) {
 }
 bool isLocalState(std::string path) {
 	return iequals(GetPreviewPath(path), "LocalState");
+}
+bool isLocalState(std::wstring path) {
+	return isLocalState(convert(path));
 }
 #pragma endregion
 
@@ -208,6 +254,9 @@ bool IsContainsAccessibleItems(PathUWP path) {
 bool IsContainsAccessibleItems(std::string path) {
 	return IsContainsAccessibleItems(PathUWP(path));
 }
+bool IsContainsAccessibleItems(std::wstring path) {
+	return IsContainsAccessibleItems(convert(path));
+}
 
 bool IsRootForAccessibleItems(PathUWP path, std::list<std::string>& subRoot, bool breakOnFirstMatch = false) {
 	path = PathResolver(path);
@@ -245,6 +294,9 @@ bool IsRootForAccessibleItems(std::string path) {
 	std::list<std::string> tmp;
 	return IsRootForAccessibleItems(path, tmp, true);
 }
+bool IsRootForAccessibleItems(std::wstring path) {
+	return IsRootForAccessibleItems(convert(path));
+}
 #pragma endregion
 
 #pragma region Functions
@@ -260,10 +312,18 @@ bool CreateIfNotExists(int openMode) {
 	}
 }
 
-HANDLE CreateFileUWP(std::string path, int accessMode, int shareMode, int openMode) {
-	HANDLE handle = INVALID_HANDLE_VALUE;
-
-	if (IsValidUWP(path)) {
+HANDLE CreateFileAPI(std::string path, long accessMode, long shareMode, long openMode) {
+#ifdef TARGET_IS_16299_OR_LOWER
+	HANDLE hFile = CreateFile2(convertToLPCWSTR(path), accessMode, shareMode, openMode, nullptr);
+#else
+	// If the item was in access future list, this will work fine
+	HANDLE hFile = CreateFile2FromAppW(convertToLPCWSTR(path), accessMode, shareMode, openMode, nullptr);
+#endif
+	return hFile;
+}
+HANDLE CreateFileUWP(std::string path, long accessMode, long shareMode, long openMode) {
+	HANDLE handle = CreateFileAPI(path, accessMode, shareMode, openMode);
+	if ((!handle || handle == INVALID_HANDLE_VALUE) && IsValidUWP(path)) {
 		bool createIfNotExists = CreateIfNotExists(openMode);
 		auto storageItem = GetStorageItem(path, createIfNotExists);
 
@@ -282,7 +342,7 @@ HANDLE CreateFileUWP(std::string path, int accessMode, int shareMode, int openMo
 	return handle;
 }
 
-HANDLE CreateFileUWP(std::wstring path, int accessMode, int shareMode, int openMode) {
+HANDLE CreateFileUWP(std::wstring path, long accessMode, long shareMode, long openMode) {
 	auto pathString = convert(path);
 	return CreateFileUWP(pathString, accessMode, shareMode, openMode);
 }
@@ -329,6 +389,10 @@ bool CheckDriveAccess(std::string driveName, bool checkIfContainsFutureAccessIte
 	}
 	return state;
 }
+bool CheckDriveAccess(std::wstring driveName, bool checkIfContainsFutureAccessItems) {
+	return CheckDriveAccess(convert(driveName), checkIfContainsFutureAccessItems);
+}
+
 bool IsValidUWP(std::string path, bool allowForAppData) {
 	auto p = PathResolver(path);
 
@@ -366,9 +430,36 @@ bool IsValidUWP(std::string path, bool allowForAppData) {
 	}
 	return !state;
 }
+bool IsValidUWP(std::wstring path, bool allowForAppData) {
+	return IsValidUWP(convert(path), allowForAppData);
+}
 
+bool IsExistsAPI(std::string path) {
+	auto p = PathResolver(path);
+	WIN32_FILE_ATTRIBUTE_DATA data{};
+#ifdef TARGET_IS_16299_OR_LOWER
+	if (GetFileAttributesExW(p.ToWString().c_str(), GetFileExInfoStandard, &data) || data.dwFileAttributes == INVALID_FILE_ATTRIBUTES) {
+		return true;
+	}
+#else
+	// If the item was in access future list, this will work fine
+	if (GetFileAttributesExFromAppW(p.ToWString().c_str(), GetFileExInfoStandard, &data) || data.dwFileAttributes == INVALID_FILE_ATTRIBUTES) {
+		return true;
+	}
+#endif
+	if (!IsValidUWP(path)) {
+		// If folder is not accessible but is part of accessible items
+		// consider it exists
+		std::list<std::string> tmp;
+		if (IsRootForAccessibleItems(path, tmp, true)) {
+			return true;
+		}
+	}
+	return false;
+}
 bool IsExistsUWP(std::string path) {
-	if (IsValidUWP(path)) {
+	bool defaultState = IsExistsAPI(path);
+	if (!defaultState && IsValidUWP(path)) {
 		auto storageItem = GetStorageItem(path);
 		if (storageItem.IsValid()) {
 			return true;
@@ -395,8 +486,34 @@ bool IsExistsUWP(std::wstring path) {
 	return IsExistsUWP(convert(path));
 }
 
+bool IsDirectoryAPI(std::string path) {
+	auto p = PathResolver(path);
+	WIN32_FILE_ATTRIBUTE_DATA data{};
+#ifdef TARGET_IS_16299_OR_LOWER
+	if (GetFileAttributesExW(p.ToWString().c_str(), GetFileExInfoStandard, &data) || data.dwFileAttributes == INVALID_FILE_ATTRIBUTES) {
+		DWORD result = data.dwFileAttributes;
+		return (result & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
+	}
+#else
+	// If the item was in access future list, this will work fine
+	if (GetFileAttributesExFromAppW(p.ToWString().c_str(), GetFileExInfoStandard, &data) || data.dwFileAttributes == INVALID_FILE_ATTRIBUTES) {
+		DWORD result = data.dwFileAttributes;
+		return (result & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
+	}
+#endif
+	if (!IsValidUWP(path)) {
+		// If folder is not accessible but is part of accessible items
+		// consider it folder
+		std::list<std::string> tmp;
+		if (IsRootForAccessibleItems(path, tmp, true)) {
+			return true;
+		}
+	}
+	return false;
+}
 bool IsDirectoryUWP(std::string path) {
-	if (IsValidUWP(path)) {
+	bool defaultState = IsDirectoryAPI(path);
+	if (!defaultState && IsValidUWP(path)) {
 		auto storageItem = GetStorageItem(path);
 		if (storageItem.IsValid()) {
 			if (storageItem.IsDirectory()) {
@@ -411,9 +528,14 @@ bool IsDirectoryUWP(std::wstring path) {
 	return IsDirectoryUWP(convert(path));
 }
 
+FILE* GetFileStreamAPI(std::string path, const char* mode) {
+	// Try it with fopen may work within the accessible places (installation folder, app data folder, maybe HDD/SSD with cap. added)
+	FILE* file = fopen(path.c_str(), mode);
+	return file;
+}
 FILE* GetFileStream(std::string path, const char* mode) {
-	FILE* file{};
-	if (IsValidUWP(path)) {
+	FILE* file = GetFileStreamAPI(path, mode);
+	if (!file && IsValidUWP(path)) {
 		auto storageItem = GetStorageItem(path);
 		if (storageItem.IsValid()) {
 			file = storageItem.GetStream(mode);
@@ -445,20 +567,23 @@ FILE* GetFileStream(std::wstring path, const char* mode) {
 
 FILE* GetFileStreamFromApp(std::string path, const char* mode) {
 
-	FILE* file{};
+	FILE* file = GetFileStreamAPI(path, mode);
+	if (!file) {
+		auto pathResolved = PathUWP(ResolvePathUWP(path));
+		HANDLE handle = INVALID_HANDLE_VALUE;
 
-	auto pathResolved = PathUWP(ResolvePathUWP(path));
-	HANDLE handle = INVALID_HANDLE_VALUE;
-
-	auto fileMode = GetFileMode(mode);
-	if (fileMode) {
-		handle = CreateFile2(pathResolved.ToWString().c_str(), fileMode->dwDesiredAccess, fileMode->dwShareMode, fileMode->dwCreationDisposition, nullptr);
+		auto fileMode = GetFileMode(mode);
+		if (fileMode) {
+			handle = CreateFile2(pathResolved.ToWString().c_str(), fileMode->dwDesiredAccess, fileMode->dwShareMode, fileMode->dwCreationDisposition, nullptr);
+		}
+		if (handle != INVALID_HANDLE_VALUE) {
+			file = _fdopen(_open_osfhandle((intptr_t)handle, fileMode->flags), mode);
+		}
 	}
-	if (handle != INVALID_HANDLE_VALUE) {
-		file = _fdopen(_open_osfhandle((intptr_t)handle, fileMode->flags), mode);
-	}
-
 	return file;
+}
+FILE* GetFileStreamFromApp(std::wstring path, const char* mode) {
+	return GetFileStreamFromApp(convert(path), mode);
 }
 
 #pragma region Content Helpers
@@ -483,6 +608,7 @@ ItemInfoUWP GetFakeFolderInfo(std::string folder) {
 
 #pragma endregion
 
+// Not sure if we have UWP alternative API here?
 std::list<ItemInfoUWP> GetFolderContents(std::string path, bool deepScan) {
 	std::list<ItemInfoUWP> contents;
 
@@ -562,7 +688,7 @@ ItemInfoUWP GetItemInfoUWP(std::string path) {
 			info = storageItem.GetItemInfo();
 		}
 		else {
-			ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", path.c_str());
+			UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", path.c_str());
 		}
 	}
 
@@ -593,9 +719,18 @@ int64_t GetSizeUWP(std::wstring path) {
 	return GetSizeUWP(convert(path));
 }
 
+BOOL DeleteFileAPI(std::string path) {
+	auto convertedPath = convertToLPCWSTR(path);
+#ifdef TARGET_IS_16299_OR_LOWER
+	return DeleteFileW(convertedPath) != 0;
+#else
+	// If the item was in access future list, this will work fine
+	return DeleteFileFromAppW(convertedPath) != 0;
+#endif
+}
 bool DeleteUWP(std::string path) {
-	bool state = false;
-	if (IsValidUWP(path)) {
+	bool state = DeleteFileAPI(path);
+	if (!state && IsValidUWP(path)) {
 		auto storageItem = GetStorageItem(path);
 		if (storageItem.IsValid()) {
 			UWP_DEBUG_LOG(UWPSMT, "Delete (%s)", path.c_str());
@@ -613,23 +748,49 @@ bool DeleteUWP(std::wstring path) {
 	return DeleteUWP(convert(path));
 }
 
-bool CreateDirectoryUWP(std::string path, bool replaceExisting) {
-	bool state = false;
-	auto p = PathUWP(path);
-	auto itemName = p.GetFilename();
-	auto rootPath = p.GetDirectory();
-
-	if (IsValidUWP(rootPath)) {
-		auto storageItem = GetStorageItem(rootPath);
-		if (storageItem.IsValid()) {
-			UWP_DEBUG_LOG(UWPSMT, "Create new folder (%s)", path.c_str());
-			state = storageItem.CreateFolder(itemName, replaceExisting);
+BOOL CreateDirectoryAPI(std::string path, bool replaceExisting) {
+	auto convertedPath = convertToLPCWSTR(path);
+#ifdef TARGET_IS_16299_OR_LOWER
+	auto state = CreateDirectoryW(convertedPath, NULL);
+#else
+	// If the item was in access future list, this will work fine
+	auto state = CreateDirectoryFromAppW(convertedPath, NULL);
+#endif
+	if (state == 0 && replaceExisting && GetLastError() == ERROR_ALREADY_EXISTS) {
+		// Force replace
+		UWP_WARN_LOG(UWPSMT, "Folder already exists, replace folder requested, %s", path.c_str());
+		if (DeleteUWP(path)) {
+#ifdef TARGET_IS_16299_OR_LOWER
+			auto state = CreateDirectoryW(convertedPath, NULL);
+#else
+			auto state = CreateDirectoryFromAppW(convertedPath, NULL);
+#endif
 		}
 		else {
-			UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", rootPath.c_str());
+			auto lastError = GetLastErrorAsString();
+			UWP_ERROR_LOG(UWPSMT, "Cannot replace folder, %s: (%s)", lastError.c_str(), path.c_str());
 		}
 	}
+	return state != 0;
+}
+bool CreateDirectoryUWP(std::string path, bool replaceExisting) {
+	bool state = CreateDirectoryAPI(path, replaceExisting);
+	if (!state && IsValidUWP(path)) {
+		auto p = PathUWP(path);
+		auto itemName = p.GetFilename();
+		auto rootPath = p.GetDirectory();
 
+		if (IsValidUWP(rootPath)) {
+			auto storageItem = GetStorageItem(rootPath);
+			if (storageItem.IsValid()) {
+				UWP_DEBUG_LOG(UWPSMT, "Create new folder (%s)", path.c_str());
+				state = storageItem.CreateFolder(itemName, replaceExisting);
+			}
+			else {
+				UWP_ERROR_LOG(UWPSMT, "Couldn't find or access (%s)", rootPath.c_str());
+			}
+		}
+	}
 	return state;
 }
 
@@ -637,10 +798,21 @@ bool CreateDirectoryUWP(std::wstring path, bool replaceExisting) {
 	return CreateDirectoryUWP(convert(path), replaceExisting);
 }
 
+// TODO: Add overwrite option
+BOOL CopyAPI(std::string path, std::string dest) {
+	auto convertedPath = convertToLPCWSTR(path);
+	auto convertedDestPath = convertToLPCWSTR(dest);
+#ifdef TARGET_IS_16299_OR_LOWER
+	return CopyFileW(convertedPath, convertedDestPath, TRUE) != 0;
+#else
+	// If the item was in access future list, this will work fine
+	return CopyFileFromAppW(convertedPath, convertedDestPath, TRUE) != 0;
+#endif
+}
 bool CopyUWP(std::string path, std::string dest) {
-	bool state = false;
+	bool state = CopyAPI(path, dest);
 
-	if (IsValidUWP(path, true) && IsValidUWP(dest, true)) {
+	if (!state && IsValidUWP(path, true) && IsValidUWP(dest, true)) {
 		auto srcStorageItem = GetStorageItem(path);
 		if (srcStorageItem.IsValid()) {
 			auto destDir = dest;
@@ -670,10 +842,21 @@ bool CopyUWP(std::wstring path, std::wstring dest) {
 	return CopyUWP(convert(path), convert(dest));
 }
 
+// TODO: Add overwrite option
+BOOL MoveAPI(std::string path, std::string dest) {
+	auto convertedPath = convertToLPCWSTR(path);
+	auto convertedDestPath = convertToLPCWSTR(dest);
+#ifdef TARGET_IS_16299_OR_LOWER
+	return MoveFileExW(convertedPath, convertedDestPath, NULL) != 0;
+#else
+	// If the item was in access future list, this will work fine
+	return MoveFileFromAppW(convertedPath, convertedDestPath) != 0;
+#endif
+}
 bool MoveUWP(std::string path, std::string dest) {
-	bool state = false;
+	bool state = MoveAPI(path, dest);
 
-	if (IsValidUWP(path, true) && IsValidUWP(dest, true)) {
+	if (!state && IsValidUWP(path, true) && IsValidUWP(dest, true)) {
 		auto srcStorageItem = GetStorageItem(path);
 
 		if (srcStorageItem.IsValid()) {
@@ -704,35 +887,173 @@ bool MoveUWP(std::wstring path, std::wstring dest) {
 	return MoveUWP(convert(path), convert(dest));
 }
 
-bool RenameUWP(std::string path, std::string name) {
-	bool state = false;
+bool RenameUWP(std::string oldname, std::string newname) {
+	// Not sure about testing using Move API here?
+	bool state = MoveAPI(oldname, newname);
 
-	auto srcRoot = PathUWP(path).GetDirectory();
-	auto dstRoot = PathUWP(name).GetDirectory();
+	auto srcRoot = PathUWP(oldname).GetDirectory();
+	auto dstRoot = PathUWP(newname).GetDirectory();
 	// Check if system using rename to move
 	if (iequals(srcRoot, dstRoot)) {
-		auto srcStorageItem = GetStorageItem(path);
+		auto srcStorageItem = GetStorageItem(oldname);
 		if (srcStorageItem.IsValid()) {
-			UWP_DEBUG_LOG(UWPSMT, "Rename (%s) to (%s)", path.c_str(), name.c_str());
-			state = srcStorageItem.Rename(name);
+			UWP_DEBUG_LOG(UWPSMT, "Rename (%s) to (%s)", oldname.c_str(), newname.c_str());
+			state = srcStorageItem.Rename(newname);
 		}
 		else {
-			UWP_DEBUG_LOG(UWPSMT, "Couldn't find or access (%s)", path.c_str());
+			UWP_DEBUG_LOG(UWPSMT, "Couldn't find or access (%s)", oldname.c_str());
 		}
 	}
 	else {
-		UWP_DEBUG_LOG(UWPSMT, " Rename used as move -> call move (%s) to (%s)", path.c_str(), name.c_str());
-		state = MoveUWP(path, name);
+		UWP_DEBUG_LOG(UWPSMT, " Rename used as move -> call move (%s) to (%s)", oldname.c_str(), newname.c_str());
+		state = MoveUWP(oldname, newname);
 	}
 
 	return state;
 }
 
-bool RenameUWP(std::wstring path, std::wstring name) {
-	return RenameUWP(convert(path), convert(name));
+bool RenameUWP(std::wstring oldname, std::wstring newname) {
+	return RenameUWP(convert(oldname), convert(newname));
 }
 #pragma endregion
 
+#pragma region File Content
+std::string readFile(FILE* file) {
+	if (!file) {
+		std::cerr << "File pointer is null!" << std::endl;
+		return "";
+	}
+
+	// Seek to the end to determine the size
+	fseek(file, 0, SEEK_END);
+	long fileSize = ftell(file);
+	rewind(file);
+
+	if (fileSize < 0) {
+		std::cerr << "Failed to determine file size!" << std::endl;
+		return "";
+	}
+
+	// Allocate memory for the file content
+	std::vector<char> buffer(fileSize);
+
+	// Read the file into the buffer
+	size_t bytesRead = fread(buffer.data(), sizeof(char), fileSize, file);
+
+	// Check for BOM and skip if present
+	const unsigned char* uBuffer = reinterpret_cast<const unsigned char*>(buffer.data());
+	if (bytesRead >= 3 && uBuffer[0] == 0xEF && uBuffer[1] == 0xBB && uBuffer[2] == 0xBF) {
+		return std::string(buffer.data() + 3, bytesRead - 3);
+	}
+
+	// Ensure null-terminated string if needed
+	buffer.push_back('\0');
+
+	return std::string(buffer.data(), bytesRead);
+}
+
+std::string GetFileContent(std::string path, const char* mode) {
+	std::string content;
+
+	// Open the file using fopen
+	FILE* file = GetFileStream(path, mode);
+	if (file) {
+		content = readFile(file);
+	}
+	else {
+		UWP_ERROR_LOG(UWPSMT, "Cannot open file: %s", GetLastErrorAsString().c_str());
+	}
+
+	return content;
+}
+std::string GetFileContent(std::wstring path, const char* mode) {
+	return GetFileContent(convert(path), mode);
+}
+
+// Helper function to generate a unique backup file name
+void backupFile(std::string originalPath) {
+	std::time_t t = std::time(nullptr);
+	char buffer[64];
+	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H-%M-%S", std::localtime(&t));
+
+	auto filePath = PathUWP(originalPath);
+	std::string originalName = filePath.GetFilename();
+	std::string::size_type pos = originalName.find_last_of('.');
+	std::string backupName = originalName.substr(0, pos) + " (" + buffer + ")" + originalName.substr(pos);
+
+	std::string dataFolder = GetWorkingFolder() + "\\backups";
+	CreateDirectoryUWP(dataFolder, false);
+
+	std::string backupPath = dataFolder + "\\" + backupName;
+
+	if (!CopyUWP(filePath.ToString(), backupPath)) {
+		std::string errorMessage = "Cannot create backup folder: using native UWP";
+		UWP_ERROR_LOG(UWPSMT, errorMessage.c_str());
+	}
+}
+
+bool writeFile(const std::string& originalPath, FILE* file, const std::string& content, bool backup) {
+	if (!file) {
+		std::string errorMessage = "Invalid file pointer";
+		UWP_ERROR_LOG(UWPSMT, errorMessage.c_str());
+		return false;
+	}
+
+	if (backup) {
+		// Generate a unique backup file name and save the backup
+		backupFile(originalPath);
+	}
+
+	// Write content to the original file
+	fseek(file, 0, SEEK_SET);
+	size_t written = fwrite(content.c_str(), sizeof(char), content.size(), file);
+	fflush(file); // Ensure data is written to the file
+
+	return written == content.size();
+}
+
+bool writeFile(const std::string& originalPath, StorageFile^ file, const std::string& content, bool backup) {
+	bool state = false;
+	try {
+		if (backup) {
+			// Generate a unique backup file name and save the backup
+			backupFile(originalPath);
+		}
+
+		// Write content to the original file
+		if (!ExecuteTask(FileIO::WriteTextAsync(file, convert(content)))) {
+			state = false;
+		}
+		else {
+			state = true;
+		}
+	}
+	catch (const std::exception& e) {
+		std::string errorMessage = "Exception: ";
+		errorMessage += std::string(e.what());
+		UWP_ERROR_LOG(UWPSMT, errorMessage.c_str());
+		state = false;
+	}
+	return state;
+}
+
+bool PutFileContents(std::string path, std::string content, const char* mode, bool backup) {
+	bool state = false;
+	// Open the file using fopen
+	FILE* file = GetFileStream(path, mode);
+	if (file) {
+		state = writeFile(path, file, content, backup);
+	}
+	else {
+		UWP_ERROR_LOG(UWPSMT, "Cannot open file: %s", GetLastErrorAsString().c_str());
+	}
+
+	return state;
+}
+bool PutFileContents(std::wstring path, std::wstring content, const char* mode, bool backup) {
+	return PutFileContents(convert(path), convert(content), mode, backup);
+}
+#pragma endregion
 
 #pragma region Helpers
 bool OpenFile(std::string path) {

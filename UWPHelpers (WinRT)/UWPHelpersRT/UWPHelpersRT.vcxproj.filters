@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="..\StorageAccess.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StorageAsync.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StorageExtensions.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StorageHandler.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StorageManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StoragePath.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StoragePickers.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\UIHelpers.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\UWP2C.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\LockScreenLogo.scale-200.png" />
+    <Image Include="Assets\SplashScreen.scale-200.png" />
+    <Image Include="Assets\Square150x150Logo.scale-200.png" />
+    <Image Include="Assets\Square44x44Logo.scale-200.png" />
+    <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
+    <Image Include="Assets\StoreLogo.png" />
+    <Image Include="Assets\Wide310x150Logo.scale-200.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="PropertySheet.props" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{3914e9ab-525c-40dc-80ae-4283f0f813aa}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\StorageAccess.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageAsync.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageConfig.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageExtensions.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageFileW.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageFolderW.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageHandler.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageInfo.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageItemW.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageLog.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StorageManager.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StoragePath.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StoragePickers.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UIHelpers.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UWP2C.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

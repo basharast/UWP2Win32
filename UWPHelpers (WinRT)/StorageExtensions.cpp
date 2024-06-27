@@ -1,5 +1,5 @@
 // UWP STORAGE MANAGER
-// Copyright (c) 2023 Bashar Astifan.
+// Copyright (c) 2023-2024 Bashar Astifan.
 // Email: bashar@astifan.online
 // Telegram: @basharastifan
 // GitHub: https://github.com/basharast/UWP2Win32
@@ -184,8 +184,9 @@ std::string convert(const char* input) {
 }
 
 LPCWSTR convertToLPCWSTR(std::string input) {
-	std::wstring stemp = make_wstring(input);
-	LPCWSTR sw = stemp.c_str();
+	winrt::hstring wstringData = convert(input);
+	//std::wstring stemp = make_wstring(input);
+	LPCWSTR sw = wstringData.data();
 
 	return sw;
 }

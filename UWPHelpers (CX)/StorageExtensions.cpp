@@ -184,9 +184,9 @@ std::string convert(const char* input) {
 }
 
 LPCWSTR convertToLPCWSTR(std::string input) {
+	// TODO: Ensure this is not producing wrong values in some cases
 	std::wstring stemp = make_wstring(input);
 	LPCWSTR sw = stemp.c_str();
-
 	return sw;
 }
 
