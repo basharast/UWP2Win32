@@ -600,6 +600,7 @@ FILE* GetFileStreamFromApp(std::string path, const char* mode) {
 FILE* GetFileStreamFromApp(std::wstring path, const char* mode) {
 	return GetFileStreamFromApp(convert(path), mode);
 }
+#pragma endregion
 
 #pragma region Content Helpers
 ItemInfoUWP GetFakeFolderInfo(std::string folder) {
@@ -621,13 +622,97 @@ ItemInfoUWP GetFakeFolderInfo(std::string folder) {
 	return info;
 }
 
-#pragma endregion
 
-// Not sure if we have UWP alternative API here?
-std::list<ItemInfoUWP> GetFolderContents(std::string path, bool deepScan) {
+std::uint64_t FileTimeToUint64(const FILETIME& ft) {
+	ULARGE_INTEGER largeInt;
+	largeInt.LowPart = ft.dwLowDateTime;
+	largeInt.HighPart = ft.dwHighDateTime;
+	return largeInt.QuadPart;
+}
+ItemInfoUWP GetFileInfoAPI(const std::wstring& path) {
+	WIN32_FILE_ATTRIBUTE_DATA fileData;
+#ifdef TARGET_IS_16299_OR_LOWER
+	if (!GetFileAttributesExW(path.c_str(), GetFileExInfoStandard, &fileData)) {
+		return {};
+	}
+#else
+	if (!GetFileAttributesExFromAppW(path.c_str(), GetFileExInfoStandard, &fileData)) {
+		return {};
+	}
+#endif
+	ItemInfoUWP info;
+	std::string pathString = convert(path);
+	info.fullName = pathString;
+	info.name = pathString.substr(pathString.find_last_of("\\") + 1);
+	info.isDirectory = (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+
+	info.size = 0;
+	if (!info.isDirectory) {
+		LARGE_INTEGER fileSize;
+#ifdef TARGET_IS_16299_OR_LOWER
+		HANDLE hFile = CreateFile2(path.c_str(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, NULL);
+#else
+		HANDLE hFile = CreateFile2FromAppW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, NULL);
+#endif
+		if (hFile != INVALID_HANDLE_VALUE) {
+			if (GetFileSizeEx(hFile, &fileSize)) {
+				info.size = static_cast<uint64_t>(fileSize.QuadPart);
+			}
+			CloseHandle(hFile);
+		}
+	}
+
+	info.creationTime = FileTimeToUint64(fileData.ftCreationTime);
+	info.lastAccessTime = FileTimeToUint64(fileData.ftLastAccessTime);
+	info.lastWriteTime = FileTimeToUint64(fileData.ftLastWriteTime);
+	info.changeTime = info.lastWriteTime;
+	info.attributes = static_cast<uint64_t>(fileData.dwFileAttributes);
+
+	return info;
+}
+std::list<ItemInfoUWP> GetFolderContentsAPI(const std::wstring& path, bool deepScan) {
 	std::list<ItemInfoUWP> contents;
+	WIN32_FIND_DATA fileData;
+#ifdef TARGET_IS_16299_OR_LOWER
+	HANDLE hFind = FindFirstFileW((path + L"\\*").c_str(), &fileData);
+#else
+	HANDLE hFind = FindFirstFileExFromAppW(
+		(path + L"\\*").c_str(),
+		FindExInfoBasic,
+		&fileData,
+		FindExSearchNameMatch,
+		NULL,
+		0);
+#endif
+	if (hFind == INVALID_HANDLE_VALUE) {
+		return contents;
+	}
 
-	if (IsValidUWP(path)) {
+	do {
+		const std::wstring fileOrDirName = fileData.cFileName;
+
+		// Skip "." and ".."
+		if (fileOrDirName == L"." || fileOrDirName == L"..") continue;
+
+		std::wstring fullPath = path + L"\\" + fileOrDirName;
+		ItemInfoUWP info = GetFileInfoAPI(fullPath);
+
+		contents.push_back(info);
+
+		if (info.isDirectory && deepScan) {
+			auto subContents = GetFolderContentsAPI(fullPath, deepScan);
+			contents.insert(contents.end(), subContents.begin(), subContents.end());
+		}
+	} while (FindNextFileW(hFind, &fileData) != 0);
+
+	FindClose(hFind);
+	return contents;
+}
+std::list<ItemInfoUWP> GetFolderContents(std::string path, bool deepScan) {
+	winrt::hstring pathWide = convert(path);
+	std::list<ItemInfoUWP> contents = GetFolderContentsAPI(pathWide.data(), deepScan);
+
+	if (contents.size() == 0 && IsValidUWP(path)) {
 		auto storageItem = GetStorageItem(path);
 		if (storageItem.IsValid()) {
 
