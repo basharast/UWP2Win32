@@ -406,6 +406,12 @@ bool CheckDriveAccess(std::wstring driveName, bool checkIfContainsFutureAccessIt
 }
 
 bool IsValidUWP(std::string path, bool allowForAppData) {
+	// The idea of this functions is to determine whether we need to use native UWP fallback,
+	// this usually help to avoid unnecessary checks if file is not exists within accessible path,
+	// usually API will fail and storage manager will try to use native fallback solution,
+	// in this case as example we shouldn't fallback to check using UWP, it should end at API level,
+	// so the result will be reversed at the end, 
+	// means file/folder is not accessible by default and something prevent the API to work.
 	auto p = PathResolver(path);
 
 	//Check valid path
