@@ -287,12 +287,18 @@ public:
 
 	void BuildStructure(StorageFolder^& folder, std::string path) {
 		std::string folderName;
-		std::vector<std::string> locationParts = split(path, '\\');
-		for each (auto dir in locationParts) {
-			folderName.append(dir);
-			// Create folder
-			ExecuteTask(folder, storageFolder->CreateFolderAsync(convert(folderName), CreationCollisionOption::OpenIfExists));
-			folderName.append("\\");
+		if (!path.empty()) {
+			std::vector<std::string> locationParts = split(path, '\\');
+			for each (auto dir in locationParts) {
+				folderName.append(dir);
+				// Create folder
+				ExecuteTask(folder, storageFolder->CreateFolderAsync(convert(folderName), CreationCollisionOption::OpenIfExists));
+				folderName.append("\\");
+			}
+		}
+		else {
+			// No structure required to be build
+			folder = storageFolder;
 		}
 	}
 
