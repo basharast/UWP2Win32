@@ -260,6 +260,7 @@ FILE* GetFileStreamFromApp(std::string path, const char* mode)
 
 - You cannot use `FindFirstFile`, `FindNextFile` with folder `HANDLE`
 - You must use the alternative function `GetFolderContents`
+- By default `GetFolderContents` will try API (FindFirstFile..) before UWP to fetch the results
 
 
 Get folder contents:
