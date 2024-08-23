@@ -8,64 +8,76 @@
 #include "StorageExtensions.h"
 
 #pragma region Inernal Helpers
-std::string make_string(const std::wstring& wstring)
+/* From RetroArch */
+char* utf16_to_utf8_string_alloc(const wchar_t* str)
 {
-	if (wstring.empty())
-	{
-		return std::string();
-	}
-	size_t pos;
-	size_t begin = 0;
-	std::string ret;
-	size_t size;
-	pos = wstring.find(static_cast<wchar_t>(0), begin);
-	while (pos != std::wstring::npos && begin < wstring.length())
-	{
-		std::wstring segment = std::wstring(&wstring[begin], pos - begin);
-		size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, &segment[0], (int)segment.size(), NULL, 0, NULL, NULL);
-		std::string converted = std::string(size, 0);
-		WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, &segment[0], (int)segment.size(), &converted[0], (int)converted.size(), NULL, NULL);
-		ret.append(converted);
-		ret.append({ 0 });
-		begin = pos + 1;
-		pos = wstring.find(static_cast<wchar_t>(0), begin);
-	}
-	if (begin <= wstring.length())
-	{
-		std::wstring segment = std::wstring(&wstring[begin], wstring.length() - begin);
-		size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, &segment[0], (int)segment.size(), NULL, 0, NULL, NULL);
-		std::string converted = std::string(size, 0);
-		WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, &segment[0], (int)segment.size(), &converted[0], (int)converted.size(), NULL, NULL);
-		ret.append(converted);
-	}
+	int len = 0;
+	char* buf = NULL;
 
-	return ret;
-}
+	if (!str || !*str)
+		return NULL;
 
-std::wstring make_wstring(const std::string& string)
-{
-	size_t requiredSize = 0;
-	std::wstring answer;
-	wchar_t* pWTempString = NULL;
-
-	requiredSize = mbstowcs(NULL, string.c_str(), 0) + 1;
-
-	pWTempString = (wchar_t*)malloc(requiredSize * sizeof(wchar_t));
-	if (pWTempString != NULL)
 	{
-		size_t size = mbstowcs(pWTempString, string.c_str(), requiredSize);
-		if (size != (size_t)(-1))
+		UINT code_page = CP_UTF8;
+
+		/* fallback to ANSI codepage instead */
+		if (!(len = WideCharToMultiByte(code_page,
+			0, str, -1, NULL, 0, NULL, NULL)))
 		{
-			answer = pWTempString;
+			code_page = CP_ACP;
+			len = WideCharToMultiByte(code_page,
+				0, str, -1, NULL, 0, NULL, NULL);
+		}
+
+		if (!(buf = (char*)calloc(len, sizeof(char))))
+			return NULL;
+
+		if (WideCharToMultiByte(code_page,
+			0, str, -1, buf, len, NULL, NULL) < 0)
+		{
+			free(buf);
+			return NULL;
 		}
 	}
 
-	if (pWTempString != NULL)
+	return buf;
+}
+wchar_t* utf8_to_utf16_string_alloc(const char* str)
+{
+	int len = 0;
+	wchar_t* buf = NULL;
+
+	if (!str || !*str)
+		return NULL;
+
+	if ((len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0)))
 	{
-		free(pWTempString);
+		if (!(buf = (wchar_t*)calloc(len, sizeof(wchar_t))))
+			return NULL;
+
+		if ((MultiByteToWideChar(CP_UTF8, 0, str, -1, buf, len)) < 0)
+		{
+			free(buf);
+			return NULL;
+		}
+	}
+	else
+	{
+		/* Fallback to ANSI codepage instead */
+		if ((len = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0)))
+		{
+			if (!(buf = (wchar_t*)calloc(len, sizeof(wchar_t))))
+				return NULL;
+
+			if ((MultiByteToWideChar(CP_ACP, 0, str, -1, buf, len)) < 0)
+			{
+				free(buf);
+				return NULL;
+			}
+		}
 	}
 
-	return answer;
+	return buf;
 }
 #pragma endregion
 
@@ -152,55 +164,45 @@ bool starts_with(std::string str, std::string prefix)
 
 Platform::String^ convert(const std::string input)
 {
-	auto wstr = make_wstring(input);
-	Platform::String^ output = ref new Platform::String(wstr.c_str());
+	auto wstr = utf8_to_utf16_string_alloc(input.c_str());
+	Platform::String^ output = ref new Platform::String(wstr);
 	return output;
 }
 
 std::wstring convertToWString(const std::string input)
 {
-	auto wstr = make_wstring(input);
-	return wstr;
+	auto wstr = utf8_to_utf16_string_alloc(input.c_str());
+	return std::wstring(wstr);
 }
 
 std::string convert(Platform::String^ input) {
-	std::wstring wsstr(input->Data());
-	auto utf8Str = make_string(wsstr); // UTF8-encoded text
-
-	return utf8Str;
+	auto utf8Str = utf16_to_utf8_string_alloc(input->Data()); // UTF8-encoded text
+	return std::string(utf8Str);
 }
 
 std::string convert(std::wstring input) {
-	auto utf8Str = make_string(input); // UTF8-encoded text
-
-	return utf8Str;
+	auto utf8Str = utf16_to_utf8_string_alloc(input.c_str()); // UTF8-encoded text
+	return std::string(utf8Str);
 }
 
 std::string convert(const char* input) {
-	std::wstring wsstr((const wchar_t*)input);
-	auto utf8Str = make_string(wsstr); // UTF8-encoded text
-
-	return utf8Str;
+	auto utf8Str = utf16_to_utf8_string_alloc((const wchar_t*)input); // UTF8-encoded text
+	return std::string(utf8Str);
 }
 
 LPCWSTR convertToLPCWSTR(std::string input) {
-	// TODO: Ensure this is not producing wrong values in some cases
-	std::wstring stemp = make_wstring(input);
+	std::wstring stemp = utf8_to_utf16_string_alloc(input.c_str());
 	LPCWSTR sw = stemp.c_str();
 	return sw;
 }
 
 LPCWSTR convertToLPCWSTR(Platform::String^ input) {
-	std::string inputString = convert(input);
-	std::wstring stemp = make_wstring(inputString);
-	LPCWSTR sw = stemp.c_str();
-
+	LPCWSTR sw = input->Data();
 	return sw;
 }
 
 const char* convertToChar(Platform::String^ input) {
-	std::string output = convert(input);
-	return output.c_str();
+	return utf16_to_utf8_string_alloc(input->Data());
 }
 
 void tolower(std::string& input) {
