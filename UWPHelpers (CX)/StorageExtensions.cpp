@@ -165,14 +165,14 @@ bool starts_with(std::string str, std::string prefix)
 Platform::String^ convert(const std::string input)
 {
 	auto wstr = utf8_to_utf16_string_alloc(input.c_str());
-	Platform::String^ output = ref new Platform::String(wstr);
+	Platform::String^ output = ref new Platform::String((wstr == NULL ? L"" : wstr));
 	return output;
 }
 
 std::wstring convertToWString(const std::string input)
 {
 	auto wstr = utf8_to_utf16_string_alloc(input.c_str());
-	return std::wstring(wstr);
+	return std::wstring((wstr == NULL ? L"" : wstr));
 }
 
 std::string convert(Platform::String^ input) {

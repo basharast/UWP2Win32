@@ -166,14 +166,14 @@ bool starts_with(std::string str, std::string prefix)
 winrt::hstring convert(const std::string input)
 {
 	auto wstr = utf8_to_utf16_string_alloc(input.c_str());
-	winrt::hstring output{ wstr };
+	winrt::hstring output{ (wstr == NULL ? L"" : wstr) };
 	return output;
 }
 
 std::wstring convertToWString(const std::string input)
 {
 	auto wstr = utf8_to_utf16_string_alloc(input.c_str());
-	return std::wstring(wstr);
+	return std::wstring((wstr == NULL ? L"" : wstr));
 }
 
 std::string convert(winrt::hstring input) {
