@@ -45,6 +45,10 @@ with this solution you can increase the app compatibility with UWP environment
 
 # Usage & Structure
 
+## Target
+
+Works fine with builds 14393+, anything below that require manual extra helpers because the solution get HANDLE over StorageFile was introduced 14393+
+
 ## Version 1.5
 
 - Added check using API before UWP
