@@ -70,7 +70,7 @@ this has been tested on older compilers and works as expected
 
 however better to avoid this if the call come from Non-STA thread, and just get the result in blocking way `return wtask().get();`
 
-WinRT version always has this which I learned from, but CX still use older way which may cause block in rare cases
+WinRT version already has this which I learned from, but CX still use older way which may cause block in rare cases
 
 # Usage & Structure 
 
