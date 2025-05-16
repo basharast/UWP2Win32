@@ -42,8 +42,37 @@ you can check the nice idea made by Team Kodi at [this file](https://github.com/
 
 with this solution you can increase the app compatibility with UWP environment
 
+## Concurrency / Async
 
-# Usage & Structure
+It took me time to understand C/C++ & CX/WinRT environment, 
+
+there are few things can be improved overall
+
+but I may not have the time to keep this updated, so here some notes:
+
+- You can do safe Concurrency / Async wait without blocking in such way
+
+```cpp
+auto __sync = std::make_shared<Concurrency::event>();
+concurrency::create_task([&]() {
+  try {
+	result = wtask().get();
+  } catch (Platform::Exception^ e) {
+	//WinRT use: const winrt::hresult_error& e
+	// Handle
+  }
+  __sync->set();
+});
+__sync->wait();
+```
+
+this has been tested on older compilers and works as expected 
+
+however better to avoid this if the call come from Non-STA thread, and just get the result in blocking way `return wtask().get();`
+
+WinRT version always has this which I learned from, but CX still use older way which may cause block in rare cases
+
+# Usage & Structure 
 
 ## Target
 
